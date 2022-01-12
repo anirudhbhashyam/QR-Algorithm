@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.linalg import companion, qr, hessenberg
 
-from hessenberg import hessenberg_transform
+from hessenberg import hessenberg_transform, householder_reflector
 
 
 class QR:
@@ -30,12 +30,16 @@ class QR:
 
 		Parameters
 		----------
-		i:	ith row.
-		j:	jth column.
-		x: 	Vector who's jth
+		i:	
+  			ith row.
+		j:	
+  			jth column.
+		x: 	
+  			Vector who's jth
 			entry needs to be 
 			reduced to 0.
-		n: 	Size of the returned
+		n: 	
+  			Size of the returned
 			Givens Matrix.
 
 		Returns
@@ -59,6 +63,30 @@ class QR:
 
 		return givens_matrix
 
+	@staticmethod
+	def eig_22(M: np.ndarray) -> (float, float):
+		"""
+		Approximates the eigenvalues
+		of the 2 x 2 matrix M.
+
+		Parameters
+		----------
+		M:	
+  			A 2 x 2 matrix. 
+
+		Returns
+		-------
+		A numpy array as the 
+		eigenvalues of M.
+		"""
+		a = M[0, 0]
+		b = M[0, 1]
+		c = M[1, 0]
+		d = M[1, 1]
+		t_1 = 0.5 * (a + d - np.sqrt(np.power(a, 2) + np.power(d, 2) + 4 * b * c - 2 * a * d))
+		t_2 = 0.5 * (a + d + np.sqrt(np.power(a, 2) + np.power(d, 2) + 4 * b * c - 2 * a * d))
+		return t_1, t_2
+
 	def qr_hessenberg(self, M: np.ndarray) -> (np.ndarray, np.ndarray):
 		"""
 		Performs one step of the 
@@ -70,7 +98,8 @@ class QR:
 
 		Parameters
 		----------
-		self:	An n x n hessenberg 
+		H:	
+  			An n x n hessenberg 
 			matrix.
 
 		Returns
@@ -80,9 +109,6 @@ class QR:
 		is the QR decomposition of
 		H.
 		"""
-		# Improvements: 
-		# Generate the Givens Matrix once.
-
 		givens_matrices = list()
 		r = M.copy()
 		n = r.shape[0]
@@ -98,14 +124,14 @@ class QR:
 
 			givens_matrices.append(g)
 			
-			# Apply the Givens Matrix
+			# Apply the Givens Matrices
 			# (conjugated and transposed)
 			# from the left.
 			r = g.conj().T @ r
 
 		# Get new H using (R g_1 g_2 ... g_n).
 		for i in range(n - 1):
-			# Apply the Givens Matrix to r 
+			# Apply the Givens Matrices to R 
 			# from the right.
 			r = r @ givens_matrices[i] 
 
@@ -120,16 +146,18 @@ class QR:
 		
 		Parameters
 		----------
-		eps:    Tolerance to break 
-				matrix self.H.
-		n_iter: Number of iterations to
-				perform.
+		eps:    
+  			Tolerance to break 
+			matrix self.H.
+		n_iter: 
+  			Number of iterations to
+			perform.
 		
 		Returns
 		-------
 		Two numpy ndarrays U, R 
-		where self.H = U R U^* is the Schur 
-		decomposition of self.H.
+		where H = U R U^* is the Schur 
+		decomposition of H.
 		"""
 		
 		r = self.H.copy()
@@ -152,14 +180,68 @@ class QR:
 				# hessenberg method.
 				r, q = self.qr_hessenberg(r)
 
+				# Update H and U
+				# H = H + sigma I		.
+				r += sigma_k * np.eye(n)
+				u = u @ q
+				
+				k += 1
+	
+		return u, r
+
+	def qr_wilkinson_shift(self, eps: float, n_iter: int) -> (np.ndarray, np.ndarray):
+		"""
+		Performs the QR algorithm 
+		employing the hessenberg method
+		for the decomposition and utilises 
+		the Wilkinson shift. 
+		
+		Parameters
+		----------
+		eps:    
+  			Tolerance to break 
+			matrix self.H.
+   
+		n_iter: 
+  			Number of iterations to
+			perform.
+		
+		Returns
+		-------
+		Two numpy ndarrays U, R 
+		where H = U R U^* is the Schur 
+		decomposition of H.
+		"""
+
+		r = self.H.copy()
+		n = r.shape[0]
+		u = np.eye(n)
+	
+		# Iterate so that matrix is reduced
+		# once off-diagonal elements are 
+		# sufficiently small.
+		for i in reversed(range(2, n)):
+			k = 0
+			while np.abs(r[i, i - 1]) > eps and k < n_iter:
+				
+				# Get shift for each iteration.
+				sigma_k = self.eig_22(r[i - 2 : i, i - 2 : i])[0]
+				print(f"{sigma_k = }")
+
+				# Shift H.
+				r -= sigma_k * np.eye(n)
+		
+				# Perform a step of the QR 
+				# hessenberg method.
+				r, q = self.qr_hessenberg(r)
+
 				# Update H and U.
 				r += sigma_k * np.eye(n)
 				u = u @ q
 				
-				# Update iteration counter.
 				k += 1
 	
-		return (u, r)
+		return u, r
 
 	def double_shift(self, shift: complex):
 		"""
@@ -188,33 +270,116 @@ class QR:
 		# QR factorisation of M.
 		# Perform a step of the QR  
 		# hessenberg method.
-		r, q = self.qr_hessenberg(M)
+		_, q = self.qr_hessenberg(M)
 		
-		return q
+		return q.T @ H @ q
 		
-if __name__ == "__main__":
-	M = np.array([
-					[4, 2, 6, 3, 4, 5, 1, 2],
-					[7, 3, 8, 2, 8, 2, 6, 5],
-					[8, 9, 6, 8, 7, 9, 8, 8],
-					[3, 2, 2, 4, 9, 1, 1, 8],
-					[6, 8, 1, 6, 4, 1, 2, 2],
-					[8, 2, 1, 5, 2, 5, 5, 1],
-					[3, 5, 7, 9, 8, 2, 10, 5],
-					[8, 6, 10, 7, 8, 8, 4, 7]
-				], dtype = complex)
+	def francis_double_step(self, eps: float, n_iter: int):
+		"""
+		Performs an efficient version of the 
+  		double shift algorithm to avoid complex
+		airthmetic.
+	 
+	 	Parameters
+		----------
+		eps:    
+  			Tolerance to break 
+			matrix self.H.
+   
+		n_iter: 
+  			Number of iterations to
+			perform.
+		
+		Returns
+		-------
+		Two numpy ndarrays U, R 
+		where H = U R U^* is the Schur 
+		decomposition of H.
+  		"""
+		H = self.H.copy()
+		n = H.shape[0]
+		active_size = n
+
+		while active_size > 1:
+			reduced_size = active_size - 2
+			H_red = H[reduced_size : active_size, reduced_size : active_size]
+
+			# Efficient real M = H^2 - coeff_1 H + coeff_2  I.
+			coeff_1 = H_red[0, 0] - H_red[1, 1]
+			coeff_2 = np.linalg.det(H_red)
+   
+			# First 3 elements of first column of M.
+			x = H[0, 0] ** 2 + H[0, 1] * H[1, 0] - coeff_1 * H[0, 0] + coeff_2
+			y = H[1, 0] * (H[0, 0] + H[1, 1] - coeff_1)
+			z = H[1, 0] * H[2, 1]
+
+			first_col_M_3 = np.array([x, y, z], dtype = np.float32)
+   
+			for k in range(active_size - 4):
+				t = householder_reflector(first_col_M_3)
+	
+				# Norm ** 2 of the Householder vector.
+				t_norm_squared = t.conj().T @ t
+	
+				p = np.eye(t.shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
+	
+				r = max((0, k))    
+				H[k : k + 2, r : n] = p.T @ H[k : k + 2, r : n]
+
+				r = min((k + 3, active_size))
+				H[0 : r, k + 1 : k + 2] = H[0 : r, k + 1 : k + 2] @ p
+
+				x = H[k + 2, k]
+				y = H[k + 1, k]
+	
+				if k < active_size - 4:
+					z = H[k + 3, k]
+
+			t = householder_reflector(np.array([x, y]))
+			# Norm ** 2 of the Householder vector.
+			t_norm_squared = t.conj().T @ t
+   
+			p = np.eye(t.shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
+   
+			H[reduced_size: active_size, active_size, active_size - 3 : n] = p @ H[reduced_size: active_size, active_size, active_size - 3 : n]
+   
+			H[: active_size, active_size - 2 : active_size] = H[: active_size, active_size - 2 : active_size] @ p
+   
+   
+			if np.abs(H[active_size, reduced_size]) < eps * (H[active_size, active_size] + H[reduced_size, reduced_size]):
+				H[active_size, reduced_size] = 0
+				active_size -= 1
+				reduced_size -= active_size - 2
+	
+			elif np.abs(H[active_size - 2, reduced_size - 2]) < eps * (H[reduced_size - 2, reduced_size - 2] + H[reduced_size, reduced_size]):
+				H[active_size - 2, reduced_size - 2] = 0 
+				active_size -= 2
+				reduced_size -= active_size - 2
+
+		return H
+
+def main():
+	M = np.array([[2, 6, 6, 0, 4], 
+			   [7, 8, 2, 0, 10], 
+			   [8, 1, 3, 8, 9], 
+			   [3, 9, 6, 0, 8], 
+			   [7, 10, 6, 1, 9]], dtype = complex)
 	
 	pd.options.display.max_columns = 200
 	pd.set_option("display.width", 1000)
+	# pd.set_option("display.float_format", lambda x: f"{x:.3f}" )
  
 	print(f"Original matrix:\n {pd.DataFrame(M)}")
 	qr_alg = QR(M)
 	print(f"Hessenberged:\n {pd.DataFrame(qr_alg.H)}")
-	r = qr_alg.double_shift(4.0 + 4.j)
-	
-	print(f"U:\n {pd.DataFrame(np.diag(r))}")
+	u, r = qr_alg.francis_double_step(1e-12, 30)
+	print(f"R:\n {pd.DataFrame(r).round(decimals = 2)}")
+	print(f"U:\n {pd.DataFrame(u).round(decimals = 2)}")
 	# print(f"R:\n {pd.DataFrame(q)}")
 	# u, r = qr_alg.qr_rayleigh_shift(1e-12, 20)
 	# pd.set_option('display.max_columns', None)
 	# print(pd.DataFrame(u))
 	# print(pd.DataFrame(r))
+	
+if __name__ == "__main__":
+	main()

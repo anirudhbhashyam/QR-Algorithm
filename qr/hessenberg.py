@@ -1,21 +1,20 @@
 import numpy as np 
 import pandas as pd 
 from scipy.linalg import hessenberg
+
+BLOCK_SIZE = 8
   
 def balance(M: np.ndarray):
 	# Implement a balancing algorithm to
 	# take care of rounding errors.
 	pass
 
-def householder_reflector(i: int, x: np.array):
+def householder_reflector(x: np.array):
 	"""
 	Produces the Householder
 	vector based on the input 
-	vector x and position i. 
-	The householder vector acts
-	to reduce the ith component
-	and all subsequent components 
-	of x to 0.
+	vector x. The householder 
+ 	vector acts as:
  
 	|a_1|		|alpha|	
 	|a_2|	->	|0|
@@ -23,10 +22,12 @@ def householder_reflector(i: int, x: np.array):
 
 	Parameters
 	----------
-	x:	A numpy array who's entries
+	x:	
+		A numpy array who's entries
 		after the ith index need to 
 		be 0ed. 
-	i: 	An int specifying the index.
+	i: 	
+ 		An int specifying the index.
 
 	Returns
 	-------
@@ -38,18 +39,19 @@ def householder_reflector(i: int, x: np.array):
 
 	# Norm of the input vector.
 	delta = np.linalg.norm(u)
-	rho = np.exp(-1j * np.angle(u[0]))
+	rho = -np.exp(1j * np.angle(u[0]))
 
 	# Set the Householder vector
 	# to u = u \pm alpha e_1 to 
 	# avoid cancellation.
-	e_1 = np.zeros(n); e_1[0] = 1
+	e_1 = np.zeros(n)
+	e_1[0] = 1.0
+	 
 	u[0] -= rho * delta
-	
-	# Scaling factor.
-	factor = np.linalg.norm(u - rho * delta * e_1) 
  
-	return (1 / factor) * u
+	# Vector needs to have 1 
+	# in the 2nd dimension.
+	return u.reshape(-1, 1)
 	
 def hessenberg_transform(M: np.ndarray) -> np.ndarray:
 	"""
@@ -59,7 +61,8 @@ def hessenberg_transform(M: np.ndarray) -> np.ndarray:
 
 	Parameters
 	----------
-	M:	A complex square 
+	M:	
+ 		A complex square 
 		numpy 2darray.
 
 	Returns
@@ -70,46 +73,62 @@ def hessenberg_transform(M: np.ndarray) -> np.ndarray:
 	permutation matrix.
 	"""
 	h = M.copy()
-	householder_vectors = list()
+	
 	n = h.shape[0]
-	u = np.eye(n)
+	u = np.eye(n, dtype = np.complex128)
+	householder_vectors = list()
  
-	for i in range(0, n - 2):
+	TILE_SHAPE = 2
+	BLOCK_SIZE = h.shape[0] // TILE_SHAPE
+	# for i in range(0, n, BLOCK_SIZE):
+	# 	for j in range(0, n, BLOCK_SIZE):
+	# 		# print(f"({i}:{i + BLOCK_SIZE}, {j}:{j + BLOCK_SIZE})")
+	# 		h_blocked = h[i : i + BLOCK_SIZE, j : j + BLOCK_SIZE]
+	# 		# print(f"{h_blocked = }")
+	# 		u_blocked = u[i : i + BLOCK_SIZE, j : j + BLOCK_SIZE]
+   
+	# 		n_ = h_blocked.shape[0]
+	# 		householder_vectors = list()
+   
+	for l in range(n - 2):
 		# Get the Householder vector.
-		t = householder_reflector(i, h[i + 1:, i])
-		# print(f"h = {pd.DataFrame(h)}")
-  
-		# Norm of the Householder vector.
-		t_norm_squared = t.conj().T @ t
-  
-		# Form the Householder matrix.
-		p = np.eye(h[i + 1:, i].shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
-		
-		# Resize and refactor the Householder matrix.
-		p = np.pad(p, ((i + 1, 0), (i + 1, 0)), mode = "constant", constant_values = ((0, 0), (0, 0)))
-		for k in range(i + 1):
-			p[k, k] = 1
+		t = householder_reflector(h[l + 1 :, l])
+
+		# Norm**2 of the Householder vector.
+		t_norm_squared = np.dot(t.conj().T, t)
 
 		# Perform a similarity transformation on h
 		# using the Householder matrix.
-		h = p @ h @ p
+		# h = p @ h @ p.
+
+		# Left multiplication by I - 2uu^{*}
+		h[l + 1 :, l :] -= 2 * t * (np.dot(t.conj().T, h[l + 1 :, l :]) / t_norm_squared)
+		# Right multiplication by I - 2uu^{*}
+		h[ :, l + 1 :] -= 2 * t.conj().T * (np.dot(h[ :, l + 1 :], t) / t_norm_squared) 
 
 		householder_vectors.append(t)
-		
-	# Store the linear transformations.
-	for i in reversed(range(0, n - 2)):
-		u = p @ u
+			
+	# Store the transformations.
+	for k in reversed(range(n - 2)):
+		t = householder_vectors[k]
+		t_norm_squared = np.dot(t.conj().T, t)
+		u[k + 1 :, k + 1 :] = 2 * t * (np.dot(t.conj().T, u[k + 1 :, k + 1 :]) / t_norm_squared)
 
 	return h, u
 
 if __name__ == "__main__":
-	M = np.array([[14, 15, 10, 18, 19, 18, 15, 15], [12, 10, 17, 11, 20, 20, 15, 
-  12], [11, 19, 19, 16, 17, 18, 17, 12], [11, 12, 18, 18, 18, 19, 14, 
-  20], [16, 12, 16, 10, 19, 17, 12, 16], [17, 13, 10, 18, 14, 14, 15, 
-  17], [11, 11, 14, 20, 20, 19, 20, 13], [16, 11, 14, 12, 16, 13, 17, 
-  17]], dtype = np.float32)
+	M = np.array([[14, 15, 10, 18, 19, 18, 15, 15], 
+               [12, 10, 17, 11, 20, 20, 15, 12], 
+               [11, 19, 19, 16, 17, 18, 17, 12], 
+               [11, 12, 18, 18, 18, 19, 14, 20], 
+               [16, 12, 16, 10, 19, 17, 12, 16], 
+               [17, 13, 10, 18, 14, 14, 15, 17], 
+               [11, 11, 14, 20, 20, 19, 20, 13], 
+               [16, 11, 14, 12, 16, 13, 17, 17]], dtype = np.complex128)
 	print(f"Original matrix:\n {pd.DataFrame(M)}")
 	print(f"Hessenberged:\n {pd.DataFrame(hessenberg_transform(M)[0].round(4))}")
-	w, v = np.linalg.eig(hessenberg_transform(M)[0])
-	print(f"Eigenvalues original: {w}") 
+	print(f"Hessenberged (scipy):\n {pd.DataFrame(hessenberg(M).round(4))}")
+	# print(f"Test equality: {np.allclose(hessenberg_transform(M)[0], hessenberg(M), rtol = 1e-6)}")
+	# w, v = np.linalg.eig(hessenberg_transform(M)[0])
+	# print(f"Eigenvalues original: {w}") 
  
