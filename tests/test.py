@@ -1,19 +1,20 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
 
+import numpy as np
 from scipy.io import mmread
-from scipy.linalg import hessenberg
+from scipy.linalg import hessenberg, eig
 
+# Add qr as a package to PYTHONPATH.
 sys.path.append("../qr")
 
-from qr import *
+from hessenberg import *
 
-
-
+# Path specification for test matrices 
+# from matrix market. scipy.io.mmread
+# is used to read gunzipped matrix files.
 path = "../test_matrices"
-files = ["blckhole"]
 ext = ".mtx.gz"
 
 class TestHessenberg(unittest.TestCase):
@@ -35,12 +36,40 @@ class TestHessenberg(unittest.TestCase):
 	
 			np.testing.assert_array_almost_equal(transformed_vec[1 : ], np.zeros(vec.shape[0] - 1))
 			
-	def test_hessenberg_transform(self):
-		for file in files:
+	def test_hessenberg_transform_random(self):
+		matrix_sizes = [10, 100, 1000]
+  
+		for n in matrix_sizes:
+			a = 0.0
+			b = 1e3 * np.random.default_rng().random(1) + 1.0
+				
+			m = complex_matrix(n, a, b)
+			hess, _ = hessenberg_transform(m)
+			hess_from_scipy = hessenberg(m)
+			# Sort the eigevalues for comparison.
+			eigs = np.sort(eig(hess)[0])
+			eigs_scipy = np.sort(eig(hess_from_scipy)[0])
+			np.testing.assert_allclose(actual = eigs_scipy, desired = eigs, rtol = 1e-6)
+   
+   
+	def test_hessenberg_transform_market(self):
+		matrix_filenames = ["blckhole", "gre__115"]
+
+		for file in matrix_filenames:
 			mat = mmread(os.path.join(path, "".join((file, ext))))
 			m = mat.toarray()
-			
-			np.testing.assert_allclose(hessenberg_transform(mat)[0], hessenberg(mat), rtol = 1e-6)
+			hess, _ = hessenberg_transform(m)
+			hess_from_scipy = hessenberg(m) 
+			# Sort the eigevalues for comparison.
+			eigs = np.sort(eig(hess)[0])
+			eigs_scipy = np.sort(eig(hess_from_scipy)[0])
+			np.testing.assert_allclose(actual = eigs_scipy, desired = eigs, rtol = 1e-6)
+
+  
+		# for file in files:
+		# 	mat = mmread(os.path.join(path, "".join((file, ext))))
+		# 	m = mat.toarray()
+		# 	np.testing.assert_allclose(hessenberg_transform(mat)[0], hessenberg(mat), rtol = 1e-6)
   
 if __name__ == "__main__":
     unittest.main()

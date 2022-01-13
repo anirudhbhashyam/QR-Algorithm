@@ -1,6 +1,6 @@
 import numpy as np 
 import pandas as pd 
-from scipy.linalg import hessenberg
+from scipy.linalg import hessenberg, norm
 
 def complex_matrix(n: int, a: float, b: float) -> np.ndarray:
 	if a >= b:
@@ -41,14 +41,13 @@ def householder_reflector(x: np.array):
 	Householder vector. 
 	"""
 	u = x.copy()
-	n = x.shape[0]
 
-	rho = -np.exp(1j * np.angle(u[0]), dtype = np.complex256)
+	rho = -np.exp(1j * np.angle(u[0]), dtype = np.complex128)
 
 	# Set the Householder vector
 	# to u = u \pm alpha e_1 to 
 	# avoid cancellation.
-	u[0] -= rho * np.linalg.norm(u)
+	u[0] -= rho * norm(u)
  
 	# Vector needs to have 1 
 	# in the 2nd dimension.
@@ -108,20 +107,13 @@ def hessenberg_transform(M: np.ndarray) -> np.ndarray:
 		# # using the Householder matrix.
 		# h = p @ h @ p
   
+		factor = 2.0 / t_norm_squared
+  
 		# Left multiplication by I - 2uu^{*}.
-		h[l + 1 :, l :] -= 2 * (t @ (t.conj().T @ h[l + 1 :, l :])) / t_norm_squared
-		# h[l + 1 :, l :] -= 2 * (t\
-      	# 						@ ((t.conj().T.real @ h[l + 1 :, l :].real)\
-        #          				+ (1j * t.conj().T.real @ h[l + 1 :, l :].imag)\
-		# 						+ (1j * t.conj().T.imag @ h[l + 1 :, l :].real)\
-  		# 						- (t.conj().T.imag @ h[l + 1 :, l :].imag))) / t_norm_squared
+		h[l + 1 :, l :] -= factor * (t @ (t.conj().T @ h[l + 1 :, l :]))
   
 		# Right multiplication by I - 2uu^{*}.
-		h[ :, l + 1 :] -= 2 * ((h[ :, l + 1 :] @ t) @ t.conj().T) / t_norm_squared
-		# h[ :, l + 1 :] -= 2 * (((h[ :, l + 1 :].real @ t.real)\
-        #          				+ (1j * h[ :, l + 1 :].real @ t.imag)\
-		# 						+ (1j * h[ :, l + 1 :].imag @ t.real)\
-  		# 						- (h[ :, l + 1 :].imag @ t.imag)) @ t.conj().T) / t_norm_squared
+		h[ :, l + 1 :] -= factor * ((h[ :, l + 1 :] @ t) @ t.conj().T)
   
 		# Force elements below main
 		# subdiagonal to be 0.
@@ -135,7 +127,7 @@ def hessenberg_transform(M: np.ndarray) -> np.ndarray:
 	for k in reversed(range(n - 2)):
 		t = householder_vectors[k]
 		t_norm_squared = np.dot(t.conj().T, t)
-		u[k + 1 :, k + 1 :] = 2 * t * (np.dot(t.conj().T, u[k + 1 :, k + 1 :]) / t_norm_squared)
+		u[k + 1 :, k + 1 :] = 2 * t * (t.conj().T @ u[k + 1 :, k + 1 :]) / t_norm_squared
 
 	return h, u
 
