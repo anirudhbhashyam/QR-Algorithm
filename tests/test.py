@@ -64,12 +64,6 @@ class TestHessenberg(unittest.TestCase):
 			eigs = np.sort(eig(hess)[0])
 			eigs_scipy = np.sort(eig(hess_from_scipy)[0])
 			np.testing.assert_allclose(actual = eigs_scipy, desired = eigs, rtol = 1e-6)
-
-  
-		# for file in files:
-		# 	mat = mmread(os.path.join(path, "".join((file, ext))))
-		# 	m = mat.toarray()
-		# 	np.testing.assert_allclose(hessenberg_transform(mat)[0], hessenberg(mat), rtol = 1e-6)
   
 if __name__ == "__main__":
     unittest.main()
