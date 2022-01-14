@@ -1,17 +1,35 @@
+"""
+QR Decomposition
+====================================
+"""
 import numpy as np
 import pandas as pd
-from scipy.linalg import qr, eig
+from scipy.linalg import eig
 
-from hessenberg import *
+# from hessenberg import *
 
 
 class QR:
 	"""
-	A simple implementation of the QR algorithm
-	and its variations.
+ 	A simple implementation of the QR algorithm and its variations.
 	"""
 	
 	def __init__(self, M: np.ndarray):
+		"""
+		Initalises the QR class. The class stores a square matrix M in hessenberg form. 
+
+		Parameters
+		----------
+		M:
+			A square complex matrix.
+   
+		Raises
+		------
+			TypeError:
+				If `M` is not of type `numpy ndarray`.
+			AttributeError:
+				If `M` is not square.
+		"""
 		if not isinstance(M, np.ndarray):
 			raise TypeError("Input matrix must of type np.ndarray.")
      
@@ -24,12 +42,21 @@ class QR:
 	@staticmethod
 	def givens_rotation(i: int, j: int, x: np.array, n: int) -> np.ndarray:
 		"""
-		Generates an (n x n) special 
-		Givens Rotation matrix based on 
-		the parameters i, j, x, and n. 
-		The rotation matrix acts to reduce 
-  		the jth component of the vector 
-		x to 0.
+		Generates an `n` :math:`\\times` `n` special Givens Rotation matrix based on the parameters `i`, `j`, `x`, and `n`. The rotation matrix acts to reduce the `j`th component of the vector `x` to 0. For a Givens rotation matrix :math:`G`, vector :math:`u` and index :math:`j`
+  
+		.. math:: 
+			G u = 
+			\\left[
+				\\begin{array}{c}
+					u_1 \\\\
+					\\vdots \\\\
+					u_{j - 1} \\\\
+					0 \\\\
+					u_{j - 1} \\\\
+					\\vdots \\\\
+					u_{n} \\\\
+				\\end{array}
+			\\right]
 
 		Parameters
 		----------
@@ -47,8 +74,8 @@ class QR:
 
 		Returns
 		-------
-		A Givens Rotation matrix as a numpy 
-		ndarray.
+		`numpy ndarray`:
+			A Givens rotation matrix.
 		"""
 
 		givens_matrix = np.eye(n, dtype = np.complex128)
@@ -69,18 +96,17 @@ class QR:
 	@staticmethod
 	def eig_22(M: np.ndarray) -> (float, float):
 		"""
-		Approximates the eigenvalues
-		of the 2 x 2 complex matrix M.
+		Approximates the eigenvalues  of the 2 :math:`\\times` 2 complex matrix `M`.
 
 		Parameters
 		----------
 		M:	
-  			A 2 x 2 numpy ndarray. 
+  			A 2 x 2 complex matrix. 
 
 		Returns
 		-------
-		A tuple as the 
-		eigenvalues of M.
+		`tuple`
+			Eigenvalues of `M`.
 		"""
 		if M.shape[0] != 2 or M.shape[1] != 2:
 			raise ValueError(f"Provided matrix should have shape 2 x 2 but has shape {M.shape[0]} x {M.shape[1]}.")
@@ -95,12 +121,7 @@ class QR:
 
 	def qr_hessenberg(self, M: np.ndarray) -> (np.ndarray, np.ndarray):
 		"""
-		Performs one step of the 
-		QR algorithm using a hessenberg
-		matrix H. Procedurally generates 
-  		the QR decomposition of H
-		exploiting the fact that H is 
-		hessenberg.
+		Performs one step of the :math:`QR` algorithm using a hessenberg matrix `H`. Procedurally generates the :math:`QR` decomposition of `H` exploiting the fact that `H` is in hessenberg form.
 
 		Parameters
 		----------
@@ -110,10 +131,10 @@ class QR:
 
 		Returns
 		-------
-		Two numpy ndarrays
-		RQ and Q, where H = QR
-		is the QR decomposition of
-		H.
+		`numpy ndarray`
+			`RQ`.
+		`numpy ndarray`
+			`Q`.
 		"""
 		givens_matrices = list()
 		r = M.copy()
@@ -145,10 +166,8 @@ class QR:
 
 	def qr_rayleigh_shift(self, eps: float, n_iter: int) -> (np.ndarray, np.ndarray):
 		"""
-		Performs the QR algorithm 
-		employing the hessenberg method
-		for the decomposition and utilises 
-		the Rayleigh shift with deflation. 
+		Performs the :math:`QR` algorithm employing the hessenberg method for the decomposition and utilises 
+		the Rayleigh shift with deflation. Produces the Schur decomposition of :math:`H = URU^{*}`.
 		
 		Parameters
 		----------
@@ -161,9 +180,10 @@ class QR:
 		
 		Returns
 		-------
-		Two numpy ndarrays U, R 
-		where H = U R U^* is the Schur 
-		decomposition of H.
+		`numpy ndarray`
+			:math:`U`
+		`numpy ndarray`
+			:math:`R` 
 		"""
 		
 		r = self.H.copy()
@@ -197,10 +217,8 @@ class QR:
 
 	def qr_wilkinson_shift(self, eps: float, n_iter: int) -> (np.ndarray, np.ndarray):
 		"""
-		Performs the QR algorithm 
-		employing the hessenberg method
-		for the decomposition and utilises 
-		the Wilkinson shift. 
+		Performs the QR algorithm  employing the hessenberg method for the decomposition and utilises 
+		the Wilkinson shift. Produces the Schur decomposition of :math:`H = URU^{*}`. 
 		
 		Parameters
 		----------
@@ -214,9 +232,10 @@ class QR:
 		
 		Returns
 		-------
-		Two numpy ndarrays U, R 
-		where H = U R U^* is the Schur 
-		decomposition of H.
+		`numpy ndarray`
+			:math:`U`
+		`numpy ndarray`
+			:math:`R`
 		"""
 
 		r = self.H.copy()
@@ -251,22 +270,19 @@ class QR:
 
 	def double_shift(self, shift: complex):
 		"""
-		Performs an inefficient
-		double shift for a real valued 
-		hessenberg matrix H 
-		with complex eigenvalues.
+		Performs an inefficient double shift for a real valued hessenberg matrix H 
+		with complex eigenvalues. Calculates the real matrix :math:`M = H^2 - 2\\Re(\\sigma)H + |\\sigma|^2 I` and the double shifted :math:`H_2 = Q^{T} H Q`, where :math:`Q` is from the :math:`QR` decomposition of :math:`M`.
 		
 		Parameters
 		----------
-		H:	
-			A real numpy ndarray.
 		shift:				
 			Approximated complex eigenvalue.
 
 		Returns
 		-------
-		A numpy ndarray, H_2
-		of the algorithm.
+		`numpy ndarray`
+			:math:`H_2`
+
 		"""
 		H = self.H.copy()
   
@@ -282,9 +298,8 @@ class QR:
 		
 	def francis_double_step(self, eps: float, n_iter: int):
 		"""
-		Performs an efficient version of the 
-  		double shift algorithm to avoid complex
-		airthmetic.
+		Performs an efficient version of the double shift algorithm to avoid complex
+		airthmetic. Produces the Schur decomposition of :math:`H = URU^{*}`.
 	 
 	 	Parameters
 		----------
@@ -295,12 +310,13 @@ class QR:
 		n_iter: 
   			Number of iterations to
 			perform.
-		
+   
 		Returns
 		-------
-		Two numpy ndarrays U, R 
-		where H = U R U^* is the Schur 
-		decomposition of H.
+		`numpy ndarray`
+			:math:`U`
+		`numpy ndarray`
+			:math:`R`
   		"""
 		H = self.H.copy()
 		n = H.shape[0]

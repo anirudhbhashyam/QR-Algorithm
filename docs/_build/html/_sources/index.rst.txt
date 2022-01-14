@@ -3,17 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to QR Algorithm's documentation!
+QR Algorithm's Documentation
 ========================================
 
 .. automodule:: qr.hessenberg
    :members:
 
+.. automodule:: qr.qr
+   :members:
+   :special-members: __init__
+
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
 
 
 Indices and tables

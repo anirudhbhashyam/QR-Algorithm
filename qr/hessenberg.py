@@ -1,13 +1,35 @@
 """
-hessenberg.py
+Hessenberg
 ====================================
-Hessenberg module
 """
 import numpy as np 
 import pandas as pd 
 from scipy.linalg import hessenberg, norm
 
 def complex_matrix(n: int, a: float, b: float) -> np.ndarray:
+	"""
+	Produces a random `n` :math:`\\times` `n` complex square matrix. All values in the matrices range between `2a` and `2b`.
+
+	Parameters
+	----------
+	n:	
+		Square matrix size.
+	a:
+		Lower limit for random number generator.
+	b: 
+		Upper limit for random number generator.
+  
+	Returns
+	-------
+	`numpy ndarray`:
+		A complex square matrix. 
+  
+	Raises
+	------
+	ValueError
+		If `b` :math:`\\leq` `a`.
+	"""
+    
 	if a >= b:
 		raise ValueError("Required: b > a")
 	
@@ -26,9 +48,19 @@ def householder_reflector(x: np.array) -> np.array:
 	"""
 	Produces the Householder
 	vector based on the input 
-	vector x. The householder 
- 	vector acts as:
-  	.. math:: a_1 = a_2
+	vector `x`. The householder 
+ 	vector :math:`u` acts as
+  
+  	.. math:: 
+   		(I-2uu^{*})x = 
+		\\left[
+			\\begin{array}{c}
+				\\alpha \\\\
+				0 \\\\
+				\\vdots \\\\
+				0 \\\\
+			\\end{array}
+		\\right]
 
 	Parameters
 	----------
@@ -39,7 +71,8 @@ def householder_reflector(x: np.array) -> np.array:
   
 	Returns
 	-------
-	The Householder vector. 
+	`numpy array`:
+		The Householder vector. 
 	"""
 	u = x.copy()
 
@@ -56,7 +89,7 @@ def householder_reflector(x: np.array) -> np.array:
 	
 def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> [np.ndarray, np.ndarray]:
 	"""
-	Converts a given matrix to Hessenberg form using Houeholder transformations.
+	Converts a given complex square matrix to Hessenberg form using Houeholder transformations.
 
 	Parameters
 	----------
@@ -67,7 +100,10 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> [np.ndarray, np.
 
 	Returns
 	-------
-	The transformed matrix and the permutation matrix if `calc_q = True`.
+	`numpy ndarray`:
+		The transformed matrix
+	`numpy ndarray`:
+		The permutation matrix if `calc_q = True`.
 	"""
 	h = M.copy()
 	n = h.shape[0]

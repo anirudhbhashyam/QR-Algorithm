@@ -180,14 +180,36 @@
         </div>
         <article role="main">
           <section id="module-qr.hessenberg">
-<span id="welcome-to-qr-algorithm-s-documentation"></span><h1>Welcome to QR Algorithm’s documentation!<a class="headerlink" href="#module-qr.hessenberg" title="Permalink to this headline">¶</a></h1>
-<section id="hessenberg-py">
-<h2>hessenberg.py<a class="headerlink" href="#hessenberg-py" title="Permalink to this headline">¶</a></h2>
-<p>Hessenberg module</p>
+<span id="qr-algorithm-s-documentation"></span><h1>QR Algorithm’s Documentation<a class="headerlink" href="#module-qr.hessenberg" title="Permalink to this headline">¶</a></h1>
+<section id="hessenberg">
+<h2>Hessenberg<a class="headerlink" href="#hessenberg" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qr.hessenberg.complex_matrix">
+<span class="sig-prename descclassname"><span class="pre">qr.hessenberg.</span></span><span class="sig-name descname"><span class="pre">complex_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.hessenberg.complex_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produces a random <cite>n</cite> <span class="math notranslate nohighlight">\(\times\)</span> <cite>n</cite> complex square matrix. All values in the matrices range between <cite>2a</cite> and <cite>2b</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Square matrix size.</p></li>
+<li><p><strong>a</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – Lower limit for random number generator.</p></li>
+<li><p><strong>b</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – Upper limit for random number generator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A complex square matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>numpy ndarray</cite></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <cite>b</cite> <span class="math notranslate nohighlight">\(\leq\)</span> <cite>a</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="qr.hessenberg.hessenberg_transform">
 <span class="sig-prename descclassname"><span class="pre">qr.hessenberg.</span></span><span class="sig-name descname"><span class="pre">hessenberg_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.hessenberg.hessenberg_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a given matrix to Hessenberg form using Houeholder transformations.</p>
+<dd><p>Converts a given complex square matrix to Hessenberg form using Houeholder transformations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -195,11 +217,15 @@
 <li><p><strong>calc_u</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Flag to determine whether to calculate the transfomation matrix.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[&lt;class ‘numpy.ndarray’&gt;, &lt;class ‘numpy.ndarray’&gt;]</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>The transformed matrix and the permutation matrix if <cite>calc_q = True</cite>.</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><cite>numpy ndarray</cite> – The transformed matrix</p></li>
+<li><p><cite>numpy ndarray</cite> – The permutation matrix if <cite>calc_q = True</cite>.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -208,9 +234,18 @@
 <span class="sig-prename descclassname"><span class="pre">qr.hessenberg.</span></span><span class="sig-name descname"><span class="pre">householder_reflector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.hessenberg.householder_reflector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produces the Householder
 vector based on the input
-vector x. The householder
-vector acts as:
-.. math:: a_1 = a_2</p>
+vector <cite>x</cite>. The householder
+vector <span class="math notranslate nohighlight">\(u\)</span> acts as</p>
+<div class="math-wrapper"><div class="math notranslate nohighlight">
+\[\begin{split}(I-2uu^{*})x =
+\left[
+        \begin{array}{c}
+                \alpha \\
+                0 \\
+                \vdots \\
+                0 \\
+        \end{array}
+\right]\end{split}\]</div></div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>x</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code>) – A numpy array who’s entries
@@ -218,12 +253,206 @@ after the 1st element needs to
 be 0ed.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>The Householder vector.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>The Householder vector.</p>
+<dd class="field-odd"><p><cite>numpy array</cite></p>
 </dd>
 </dl>
+</dd></dl>
+</section>
+<span class="target" id="module-qr.qr"></span><section id="qr-decomposition">
+<h2>QR Decomposition<a class="headerlink" href="#qr-decomposition" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qr.qr.QR">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qr.qr.</span></span><span class="sig-name descname"><span class="pre">QR</span></span><a class="headerlink" href="#qr.qr.QR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple implementation of the QR algorithm and its variations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initalises the QR class. The class stores a square matrix M in hessenberg form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>M</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – A square complex matrix.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError:</strong> – If <cite>M</cite> is not of type <cite>numpy ndarray</cite>.</p></li>
+<li><p><strong>AttributeError:</strong> – If <cite>M</cite> is not square.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.double_shift">
+<span class="sig-name descname"><span class="pre">double_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.double_shift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an inefficient double shift for a real valued hessenberg matrix H
+with complex eigenvalues. Calculates the real matrix <span class="math notranslate nohighlight">\(M = H^2 - 2\Re(\sigma)H + |\sigma|^2 I\)</span> and the double shifted <span class="math notranslate nohighlight">\(H_2 = Q^{T} H Q\)</span>, where <span class="math notranslate nohighlight">\(Q\)</span> is from the <span class="math notranslate nohighlight">\(QR\)</span> decomposition of <span class="math notranslate nohighlight">\(M\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>shift</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>) – Approximated complex eigenvalue.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><span class="math notranslate nohighlight">\(H_2\)</span></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>numpy ndarray</cite></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.eig_22">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">eig_22</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.eig_22" title="Permalink to this definition">¶</a></dt>
+<dd><p>Approximates the eigenvalues  of the 2 <span class="math notranslate nohighlight">\(\times\)</span> 2 complex matrix <cite>M</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>M</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – A 2 x 2 complex matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Eigenvalues of <cite>M</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>tuple</cite></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.francis_double_step">
+<span class="sig-name descname"><span class="pre">francis_double_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.francis_double_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an efficient version of the double shift algorithm to avoid complex
+airthmetic. Produces the Schur decomposition of <span class="math notranslate nohighlight">\(H = URU^{*}\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eps</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – Tolerance to break
+matrix self.H.</p></li>
+<li><p><strong>n_iter</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Number of iterations to
+perform.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><cite>numpy ndarray</cite> – <span class="math notranslate nohighlight">\(U\)</span></p></li>
+<li><p><cite>numpy ndarray</cite> – <span class="math notranslate nohighlight">\(R\)</span></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.givens_rotation">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">givens_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.givens_rotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an <cite>n</cite> <span class="math notranslate nohighlight">\(\times\)</span> <cite>n</cite> special Givens Rotation matrix based on the parameters <cite>i</cite>, <cite>j</cite>, <cite>x</cite>, and <cite>n</cite>. The rotation matrix acts to reduce the <cite>j`th component of the vector `x</cite> to 0. For a Givens rotation matrix <span class="math notranslate nohighlight">\(G\)</span>, vector <span class="math notranslate nohighlight">\(u\)</span> and index <span class="math notranslate nohighlight">\(j\)</span></p>
+<div class="math-wrapper"><div class="math notranslate nohighlight">
+\[\begin{split}G u =
+\left[
+        \begin{array}{c}
+                u_1 \\
+                \vdots \\
+                u_{j - 1} \\
+                0 \\
+                u_{j - 1} \\
+                \vdots \\
+                u_{n} \\
+        \end{array}
+\right]\end{split}\]</div></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – ith row.</p></li>
+<li><p><strong>j</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – jth column.</p></li>
+<li><p><strong>x</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code>) – Vector who’s jth
+entry needs to be
+reduced to 0.</p></li>
+<li><p><strong>n</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Size of the returned
+Givens Matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Givens rotation matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>numpy ndarray</cite></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.qr_hessenberg">
+<span class="sig-name descname"><span class="pre">qr_hessenberg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.qr_hessenberg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs one step of the <span class="math notranslate nohighlight">\(QR\)</span> algorithm using a hessenberg matrix <cite>H</cite>. Procedurally generates the <span class="math notranslate nohighlight">\(QR\)</span> decomposition of <cite>H</cite> exploiting the fact that <cite>H</cite> is in hessenberg form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>H</strong> – An n x n hessenberg
+matrix.</p></li>
+<li><p><strong>M</strong> (<em>numpy.ndarray</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(&lt;class ‘numpy.ndarray’&gt;, &lt;class ‘numpy.ndarray’&gt;)</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><cite>numpy ndarray</cite> – <cite>RQ</cite>.</p></li>
+<li><p><cite>numpy ndarray</cite> – <cite>Q</cite>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.qr_rayleigh_shift">
+<span class="sig-name descname"><span class="pre">qr_rayleigh_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.qr_rayleigh_shift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the <span class="math notranslate nohighlight">\(QR\)</span> algorithm employing the hessenberg method for the decomposition and utilises
+the Rayleigh shift with deflation. Produces the Schur decomposition of <span class="math notranslate nohighlight">\(H = URU^{*}\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eps</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – Tolerance to break
+matrix self.H.</p></li>
+<li><p><strong>n_iter</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Number of iterations to
+perform.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(&lt;class ‘numpy.ndarray’&gt;, &lt;class ‘numpy.ndarray’&gt;)</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><cite>numpy ndarray</cite> – <span class="math notranslate nohighlight">\(U\)</span></p></li>
+<li><p><cite>numpy ndarray</cite> – <span class="math notranslate nohighlight">\(R\)</span></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qr.qr.QR.qr_wilkinson_shift">
+<span class="sig-name descname"><span class="pre">qr_wilkinson_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.qr_wilkinson_shift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the QR algorithm  employing the hessenberg method for the decomposition and utilises
+the Wilkinson shift. Produces the Schur decomposition of <span class="math notranslate nohighlight">\(H = URU^{*}\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eps</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – Tolerance to break
+matrix self.H.</p></li>
+<li><p><strong>n_iter</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Number of iterations to
+perform.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(&lt;class ‘numpy.ndarray’&gt;, &lt;class ‘numpy.ndarray’&gt;)</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><cite>numpy ndarray</cite> – <span class="math notranslate nohighlight">\(U\)</span></p></li>
+<li><p><cite>numpy ndarray</cite> – <span class="math notranslate nohighlight">\(R\)</span></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 </dd></dl>
 </section>
 <div class="toctree-wrapper compound">
@@ -271,8 +500,9 @@ be 0ed.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Welcome to QR Algorithm’s documentation!</a><ul>
-<li><a class="reference internal" href="#hessenberg-py">hessenberg.py</a></li>
+<li><a class="reference internal" href="#">QR Algorithm’s Documentation</a><ul>
+<li><a class="reference internal" href="#hessenberg">Hessenberg</a></li>
+<li><a class="reference internal" href="#qr-decomposition">QR Decomposition</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -290,5 +520,6 @@ be 0ed.</p>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>
