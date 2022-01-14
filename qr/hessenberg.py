@@ -1,3 +1,8 @@
+"""
+hessenberg.py
+====================================
+Hessenberg module
+"""
 import numpy as np 
 import pandas as pd 
 from scipy.linalg import hessenberg, norm
@@ -17,16 +22,13 @@ def balance(M: np.ndarray):
 	# take care of rounding errors.
 	pass
 
-def householder_reflector(x: np.array):
+def householder_reflector(x: np.array) -> np.array:
 	"""
 	Produces the Householder
 	vector based on the input 
 	vector x. The householder 
  	vector acts as:
- 
-	|a_1|		|alpha|	
-	|a_2|	->	|0|
-	|a_3|		|0|
+  	.. math:: a_1 = a_2
 
 	Parameters
 	----------
@@ -37,8 +39,7 @@ def householder_reflector(x: np.array):
   
 	Returns
 	-------
-	A numpy array that acts as the 
-	Householder vector. 
+	The Householder vector. 
 	"""
 	u = x.copy()
 
@@ -53,28 +54,23 @@ def householder_reflector(x: np.array):
 	# in the 2nd dimension.
 	return u.reshape(-1, 1)
 	
-def hessenberg_transform(M: np.ndarray) -> np.ndarray:
+def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> [np.ndarray, np.ndarray]:
 	"""
-	Converts a given matrix to 
-	Hessenberg form using
-	Houeholder transformations.
+	Converts a given matrix to Hessenberg form using Houeholder transformations.
 
 	Parameters
 	----------
 	M:	
- 		A complex square 
-		numpy 2darray.
+ 		A complex square numpy 2darray.
+	calc_u:
+		Flag to determine whether to calculate the transfomation matrix.
 
 	Returns
 	-------
-	A tuple consisting of numpy
- 	2-D arrays which are the 
-	hessenberg form and the 
-	permutation matrix.
+	The transformed matrix and the permutation matrix if `calc_q = True`.
 	"""
 	h = M.copy()
 	n = h.shape[0]
-	u = np.eye(n, dtype = np.complex256)
 	householder_vectors = list()
  
 	# TILE_SHAPE = 2
@@ -122,14 +118,18 @@ def hessenberg_transform(M: np.ndarray) -> np.ndarray:
 		# Store the transformations 
 		# to compute u.
 		householder_vectors.append(t)
-			
-	# Store the transformations.
-	for k in reversed(range(n - 2)):
-		t = householder_vectors[k]
-		t_norm_squared = np.dot(t.conj().T, t)
-		u[k + 1 :, k + 1 :] = 2 * t * (t.conj().T @ u[k + 1 :, k + 1 :]) / t_norm_squared
+  
+	# Calculate transfomation matrix
+	# from the stored transformations.
+	if calc_u:
+		u = np.eye(n, dtype = np.complex128)
+		for k in reversed(range(n - 2)):
+			t = householder_vectors[k]
+			t_norm_squared = np.dot(t.conj().T, t)
+			u[k + 1 :, k + 1 :] = 2 * t * (t.conj().T @ u[k + 1 :, k + 1 :]) / t_norm_squared
+		return h, u
 
-	return h, u
+	return h
 
 if __name__ == "__main__":
 	n = 10
@@ -137,12 +137,12 @@ if __name__ == "__main__":
 	b = 20.0
 	M = complex_matrix(n, a, b)
 	# M = np.array([[14, 15 + 2j, 10, 18, 19, 18, 15, 15], 
-    #            [12, 10, 17, 11, 20, 20, 15, -12], 
-    #            [11, 19, 19, -16, 17, 18, 17, 12], 
-    #            [11, 12, 18, 18, 18, 19, 14, 20], 
-    #            [16, 12, 16, 10, 19, 17, 12, 16], 
-    #            [17, 13, -10, 18, 14, 14, 15, 17], 
-    #            [11, 11, 14, 20, 20, 19, 20, 13], 
+	#            [12, 10, 17, 11, 20, 20, 15, -12], 
+	#            [11, 19, 19, -16, 17, 18, 17, 12], 
+	#            [11, 12, 18, 18, 18, 19, 14, 20], 
+	#            [16, 12, 16, 10, 19, 17, 12, 16], 
+	#            [17, 13, -10, 18, 14, 14, 15, 17], 
+	#            [11, 11, 14, 20, 20, 19, 20, 13], 
 	# 			[16, 11, 14, 12, 16, 13, 17, 17]], dtype = np.complex128)
 	# max_el = np.max(M)
 	# M /= max_el

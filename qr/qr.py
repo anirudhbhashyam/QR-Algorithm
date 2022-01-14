@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
-from scipy.linalg import companion, qr, hessenberg
+from scipy.linalg import qr, eig
 
-from hessenberg import hessenberg_transform, householder_reflector
+from hessenberg import *
 
 
 class QR:
@@ -12,11 +12,14 @@ class QR:
 	"""
 	
 	def __init__(self, M: np.ndarray):
+		if not isinstance(M, np.ndarray):
+			raise TypeError("Input matrix must of type np.ndarray.")
+     
 		if M.shape[0] != M.shape[1]:
-			raise AttributeError("Matrix must be square.")
+			raise AttributeError(f"Matrix must be square given shape is {M.shape[0]} x {M.shape[1]}.")
 
 		# Store matrix in Hessenberg form.
-		self.H = hessenberg(M)
+		self.H = hessenberg_transform(M, False)
 
 	@staticmethod
 	def givens_rotation(i: int, j: int, x: np.array, n: int) -> np.ndarray:
@@ -67,18 +70,21 @@ class QR:
 	def eig_22(M: np.ndarray) -> (float, float):
 		"""
 		Approximates the eigenvalues
-		of the 2 x 2 matrix M.
+		of the 2 x 2 complex matrix M.
 
 		Parameters
 		----------
 		M:	
-  			A 2 x 2 matrix. 
+  			A 2 x 2 numpy ndarray. 
 
 		Returns
 		-------
-		A numpy array as the 
+		A tuple as the 
 		eigenvalues of M.
 		"""
+		if M.shape[0] != 2 or M.shape[1] != 2:
+			raise ValueError(f"Provided matrix should have shape 2 x 2 but has shape {M.shape[0]} x {M.shape[1]}.")
+
 		a = M[0, 0]
 		b = M[0, 1]
 		c = M[1, 0]
@@ -142,7 +148,7 @@ class QR:
 		Performs the QR algorithm 
 		employing the hessenberg method
 		for the decomposition and utilises 
-		the Rayleigh shift. 
+		the Rayleigh shift with deflation. 
 		
 		Parameters
 		----------
@@ -226,7 +232,7 @@ class QR:
 				
 				# Get shift for each iteration.
 				sigma_k = self.eig_22(r[i - 2 : i, i - 2 : i])[0]
-				print(f"{sigma_k = }")
+				# print(f"{sigma_k = }")
 
 				# Shift H.
 				r -= sigma_k * np.eye(n)
@@ -359,11 +365,10 @@ class QR:
 		return H
 
 def main():
-	M = np.array([[2, 6, 6, 0, 4], 
-			   [7, 8, 2, 0, 10], 
-			   [8, 1, 3, 8, 9], 
-			   [3, 9, 6, 0, 8], 
-			   [7, 10, 6, 1, 9]], dtype = complex)
+	n = 8
+	a = 0.0
+	b = 10.0
+	M = complex_matrix(n, a, b)
 	
 	pd.options.display.max_columns = 200
 	pd.set_option("display.width", 1000)
@@ -371,10 +376,19 @@ def main():
  
 	print(f"Original matrix:\n {pd.DataFrame(M)}")
 	qr_alg = QR(M)
-	print(f"Hessenberged:\n {pd.DataFrame(qr_alg.H)}")
-	u, r = qr_alg.francis_double_step(1e-12, 30)
-	print(f"R:\n {pd.DataFrame(r).round(decimals = 2)}")
-	print(f"U:\n {pd.DataFrame(u).round(decimals = 2)}")
+	a = 0.0
+	b = 1e3 * np.random.default_rng().random(1) + 1.0
+	m = complex_matrix(2, a, b)
+	qr_alg = QR(m)
+	eigs = np.sort(qr_alg.eig_22(m))
+	eigs_scipy = np.sort(eig(m)[0])
+	print(f"Eigs:\n {pd.DataFrame(eigs)}")
+	print(f"Eigs (scipy):\n {pd.DataFrame(eigs_scipy)}")
+	np.testing.assert_allclose(actual = eigs, desired = eigs_scipy, rtol = 1e-6)
+	# print(f"Hessenberged:\n {pd.DataFrame(qr_alg.H)}")
+	# u, r = qr_alg.francis_double_step(1e-12, 30)
+	# print(f"R:\n {pd.DataFrame(r).round(decimals = 2)}")
+	# print(f"U:\n {pd.DataFrame(u).round(decimals = 2)}")
 	# print(f"R:\n {pd.DataFrame(q)}")
 	# u, r = qr_alg.qr_rayleigh_shift(1e-12, 20)
 	# pd.set_option('display.max_columns', None)

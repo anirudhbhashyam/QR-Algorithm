@@ -6,10 +6,12 @@ import numpy as np
 from scipy.io import mmread
 from scipy.linalg import hessenberg, eig
 
-# Add qr as a package to PYTHONPATH.
+# Add qr as an import module 
+# to the PYTHONPATH.
 sys.path.append("../qr")
 
 from hessenberg import *
+from qr import QR
 
 # Path specification for test matrices 
 # from matrix market. scipy.io.mmread
@@ -17,6 +19,7 @@ from hessenberg import *
 path = "../test_matrices"
 ext = ".mtx.gz"
 
+@unittest.skip("Testing other stuff.")
 class TestHessenberg(unittest.TestCase):
 	def test_reflector(self):
 		# Create random vectors.
@@ -38,32 +41,32 @@ class TestHessenberg(unittest.TestCase):
 			
 	def test_hessenberg_transform_random(self):
 		matrix_sizes = [10, 100, 1000]
+		err_msg = "The eigenvalues computed from the hessenberg transform (via scipy and via the implemented algorithm) are not close enough."
   
 		for n in matrix_sizes:
 			a = 0.0
 			b = 1e3 * np.random.default_rng().random(1) + 1.0
-				
 			m = complex_matrix(n, a, b)
-			hess, _ = hessenberg_transform(m)
+			hess = hessenberg_transform(m, False)
 			hess_from_scipy = hessenberg(m)
 			# Sort the eigevalues for comparison.
 			eigs = np.sort(eig(hess)[0])
 			eigs_scipy = np.sort(eig(hess_from_scipy)[0])
-			np.testing.assert_allclose(actual = eigs_scipy, desired = eigs, rtol = 1e-6)
-   
+			np.testing.assert_allclose(actual = eigs, desired = eigs_scipy, rtol = 1e-6, err_msg = err_msg)
    
 	def test_hessenberg_transform_market(self):
-		matrix_filenames = ["blckhole", "gre__115"]
-
+		matrix_filenames = ["gre__115", "west0381"]
+		err_msg = "The eigenvalues computed from the hessenberg transform (via scipy and via the implemented algorithm) are not close enough."
 		for file in matrix_filenames:
 			mat = mmread(os.path.join(path, "".join((file, ext))))
 			m = mat.toarray()
-			hess, _ = hessenberg_transform(m)
+			hess = hessenberg_transform(m, False)
 			hess_from_scipy = hessenberg(m) 
 			# Sort the eigevalues for comparison.
 			eigs = np.sort(eig(hess)[0])
 			eigs_scipy = np.sort(eig(hess_from_scipy)[0])
-			np.testing.assert_allclose(actual = eigs_scipy, desired = eigs, rtol = 1e-6)
-  
+			np.testing.assert_allclose(actual = eigs, desired = eigs_scipy, rtol = 1e-6, err_msg = err_msg)
+
+
 if __name__ == "__main__":
     unittest.main()
