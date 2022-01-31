@@ -1,17 +1,17 @@
 """
 QR Decomposition
-====================================
+================
 """
 import os
-from typing import Union
+from typing import Union, Tuple
 
 import numpy as np
 import pandas as pd
 from scipy.io import mmread
 from scipy.linalg import eig, qr, schur, det
 
-from hessenberg import *
-from utility import *
+import hessenberg as hg
+import utility as ut
 
 path = "../test_matrices"
 ext = "mtx.gz"
@@ -44,7 +44,7 @@ class QR:
 			raise AttributeError(f"Matrix must be square given shape is {M.shape[0]} x {M.shape[1]}.")
 
 		# Store matrix in Hessenberg form.
-		self.H = hessenberg_transform(M, False)
+		self.H = hg.hessenberg_transform(M, False)
 
 	@staticmethod
 	def givens_rotation(i: int, j: int, x: np.array, n: int) -> np.ndarray:
@@ -109,8 +109,29 @@ class QR:
 		return givens_matrix
 
 	@staticmethod 
-	def givens_22(x: np.array):
-		# print(f"x array type: {x.dtype}")
+	def givens_22(x: np.array) -> np.ndarray:
+		"""
+		Generates an `2` :math:`\\times` `2` special Givens Rotation matrix based on the on the :math:`2 \\times 1` vector `x`. Function is useful for producing Givens matrices stabily and efficiently. For a Givens rotation matrix :math:`G`, vector :math:`u`
+  
+		.. math:: 
+			G u = 
+			\\left[
+				\\begin{array}{c}
+					u_1 \\\\
+					0
+				\\end{array}
+			\\right]
+
+		Parameters
+		----------
+		x: 	
+  			:math:`2 \\times 2` vector who's 2nd entry needs to be reduced to 0.
+
+		Returns
+		-------
+		A :math:`2 \\times 2` Givens rotation matrix.
+		"""
+
 		g = np.zeros((2, 2), dtype = x.dtype)
 	
 		if x[1] == 0.0:
@@ -118,13 +139,13 @@ class QR:
 			s = 0.0
 		elif x[0] == 0.0:
 			c = 0.0
-			s = sign(np.conj(x[1]))
+			s = ut.sign(np.conj(x[1]))
 		else:
 			abs_x0_2 = x[0].real ** 2 + x[0].imag ** 2
 			abs_x1_2 = x[1].real ** 2 + x[1].imag ** 2 
 			denom = np.sqrt(abs_x0_2 + abs_x1_2)
 			c = np.sqrt(abs_x0_2) / denom
-			s = (sign(x[0]) * np.conj(x[1])) / denom
+			s = (ut.sign(x[0]) * np.conj(x[1])) / denom
 		
 		g[0, 0] = c
 		g[1, 1] = c
@@ -133,7 +154,7 @@ class QR:
 		# print(f"{g = }")
 		return g
 
-	def qr_hessenberg(self, M: np.ndarray) -> (np.ndarray, np.ndarray):
+	def qr_hessenberg(self, M: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 		"""
 		Performs one step of the :math:`QR` algorithm using a hessenberg matrix `H`. Procedurally generates the :math:`QR` decomposition of `H` exploiting the fact that `H` is in hessenberg form.
 
@@ -145,10 +166,8 @@ class QR:
 
 		Returns
 		-------
-		`numpy ndarray`
-			`Q`.
-		`numpy ndarray`
-			`RQ`.
+		:math:`Q`.
+		:math:`RQ`.
 		"""
 		givens_matrices = list()
 		r = M.copy()
@@ -184,7 +203,7 @@ class QR:
 
 		return q, r
 
-	def qr_rayleigh_shift(self, eps: float, n_iter: int) -> (np.ndarray, np.ndarray):
+	def qr_rayleigh_shift(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
 		"""
 		Performs the :math:`QR` algorithm employing the hessenberg method for the decomposition and utilises 
 		the Rayleigh shift with deflation. Produces the Schur decomposition of :math:`H = URU^{*}`.
@@ -200,10 +219,8 @@ class QR:
 		
 		Returns
 		-------
-		`numpy ndarray`
-			:math:`U`
-		`numpy ndarray`
-			:math:`R` 
+		:math:`U`
+		:math:`R` 
 		"""
 		
 		r = self.H.copy()
@@ -219,15 +236,18 @@ class QR:
 				# Get shift for each iteration.
 				sigma_k = r[i, i]
 
+				# Generate a scaled identity matrix for use in the shifts.
+				shift_mat = sigma_k * np.eye(n, dtype = r.dtype)
+
 				# Shift H = H - sigma I.
-				r -= sigma_k * np.eye(n)
+				r -= shift_mat 
 		
 				# Perform a step of the QR 
 				# hessenberg method.
 				q, r = self.qr_hessenberg(r)
 
-				# Update H = H + sigma I.
-				r += sigma_k * np.eye(n)
+				# Shift H = H + sigma I.
+				r += shift_mat 
 	
 				# Form U.
 				u = u @ q
@@ -237,13 +257,25 @@ class QR:
 		return u, r
 	
 	@staticmethod
-	def wilkinson_shift(M: np.ndarray) -> float: 
+	def wilkinson_shift(M: np.ndarray) -> Union[complex, float]:
+		"""
+		A function to comput a stable numerical value of the Wilkison shift (:math:`\\sigma`).
+  
+		Parameters
+		----------
+		M :
+			A :math:`2 \\times 2` matrix from which the shift is computed.
+   
+		Returns
+		-------
+		:math:`\\sigma`.
+		"""
 		sigma = 0.5 * (M[0, 0] - M[1, 1])
-		mu = M[1, 1] - sign(sigma) * (M[1, 0] ** 2)
+		mu = M[1, 1] - ut.sign(sigma) * (M[1, 0] ** 2)
 		mu /= abs(sigma) + np.sqrt(sigma ** 2 + M[0, 0] ** 2)
 		return mu
 
-	def qr_wilkinson_shift(self, eps: float, n_iter: int) -> (np.ndarray, np.ndarray):
+	def qr_wilkinson_shift(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
 		"""
 		Performs the QR algorithm  employing the hessenberg method for the decomposition and utilises 
 		the Wilkinson shift. Produces the Schur decomposition of :math:`H = U^{*}RU`. 
@@ -260,10 +292,8 @@ class QR:
 		
 		Returns
 		-------
-		`numpy ndarray`
-			:math:`U`
-		`numpy ndarray`
-			:math:`R`
+		:math:`U`
+		:math:`R`
 		"""
 
 		r = self.H.copy()
@@ -286,15 +316,18 @@ class QR:
 				sigma_k = self.wilkinson_shift(r[i - 2 :, i - 2 :])
 				# print(f"{sigma_k = }")
 
+				# Generate a scaled identity matrix for use in the shifts.
+				shift_mat = sigma_k * np.eye(n, dtype = r.dtype)
+
 				# Shift H.
-				r -= sigma_k * np.eye(n, dtype = r.dtype)
+				r -= shift_mat
 		
 				# Perform a step of the QR 
 				# hessenberg method.
 				q, r = self.qr_hessenberg(r)
 
 				# Shift H back.
-				r += sigma_k * np.eye(n, dtype = r.dtype)
+				r += shift_mat
     
 				# Store the transformations.
 				u = u @ q
@@ -315,23 +348,30 @@ class QR:
 
 		Returns
 		-------
-		`numpy ndarray`
+		`numpy ndarray`: 
 			:math:`H_2`
 
+		Raises
+		------
+		ValueError:
+			If `self.H` is not real.
 		"""
+		if np.iscomplex(self.H):
+			raise ValueError("Input matrix must be real.")
+
 		H = self.H.copy()
   
 		# Calculate the real matrix M.
-		M = H @ H - 2 * shift.real * H + (np.abs(shift) ** 2) * np.eye(H.shape[0])
+		M = H @ H - 2 * shift.real * H + (abs(shift) ** 2) * np.eye(H.shape[0])
 		
 		# QR factorisation of M.
 		# Perform a step of the QR  
 		# hessenberg method.
-		_, q = self.qr_hessenberg(M)
+		q, r = self.qr_hessenberg(M)
 		
 		return q.T @ H @ q
 		
-	def francis_double_step(self, eps: float, n_iter: int):
+	def francis_double_step(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
 		"""
 		Performs an efficient version of the double shift algorithm to avoid complex
 		airthmetic. Produces the Schur decomposition of :math:`H = URU^{*}`.
@@ -348,10 +388,8 @@ class QR:
    
 		Returns
 		-------
-		`numpy ndarray`
-			:math:`U`
-		`numpy ndarray`
-			:math:`R`
+		:math:`U`
+		:math:`R`
   		"""
 		H = self.H.copy()
 		n = H.shape[0]
@@ -422,7 +460,7 @@ def main():
 	n = 100
 	a = 0.0
 	b = 1e3 * np.random.default_rng().random(1) + 1.0
-	m = complex_matrix(n, a, b)
+	m = ut.complex_matrix(n, a, b)
 	max_element = max(np.max(m.real), np.max(m.imag))
 	m /= max_element
 	qr_alg = QR(m)

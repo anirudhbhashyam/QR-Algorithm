@@ -1,12 +1,16 @@
 """
 Hessenberg
-====================================
+==========
 """
 import numpy as np 
 import pandas as pd 
 from scipy.linalg import hessenberg, norm
-from utility import *
-  
+
+import utility as ut
+
+from typing import Tuple 
+
+
 def balance(M: np.ndarray):
 	# Implement a balancing algorithm to
 	# take care of rounding errors.
@@ -33,8 +37,8 @@ def householder_reflector(x: np.array) -> np.array:
 	Parameters
 	----------
 	x:	
-		A numpy array who's entries
-		after the 1st element needs to 
+		A complex `numpy array` who's entries
+		after the 1st element need to 
 		be 0ed. 
   
 	Returns
@@ -47,7 +51,7 @@ def householder_reflector(x: np.array) -> np.array:
 	if any(np.iscomplex(u)):
 		rho = -np.exp(1j * np.angle(u[0]), dtype = np.complex256)
 	else:
-		rho = -sign(u[0])
+		rho = -ut.sign(u[0])
 
 	# Set the Householder vector
 	# to u = u \pm alpha e_1 to 
@@ -58,14 +62,14 @@ def householder_reflector(x: np.array) -> np.array:
 	# in the 2nd dimension.
 	return u.reshape(-1, 1)
 	
-def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> [np.ndarray, np.ndarray]:
+def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray, np.ndarray]:
 	"""
-	Converts a given complex square matrix to Hessenberg form using Houeholder transformations.
+	Converts a given complex square matrix to Hessenberg form using Householder transformations.
 
 	Parameters
 	----------
 	M:	
- 		A complex square numpy 2darray.
+ 		A complex square `numpy ndarray`.
 	calc_u:
 		Flag to determine whether to calculate the transfomation matrix.
 
@@ -142,7 +146,7 @@ if __name__ == "__main__":
 	n = 10
 	a = 10.0
 	b = 20.0
-	M = complex_matrix(n, a, b)
+	M = ut.complex_matrix(n, a, b)
 	# M = np.array([[14, 15 + 2j, 10, 18, 19, 18, 15, 15], 
 	#            [12, 10, 17, 11, 20, 20, 15, -12], 
 	#            [11, 19, 19, -16, 17, 18, 17, 12], 
