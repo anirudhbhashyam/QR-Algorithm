@@ -9,7 +9,7 @@ QR Algorithm's Documentation
 .. automodule:: qr.hessenberg
    :members:
 
-.. automodule:: qr.qr
+.. autoclass:: qr.QR
    :members:
    :special-members: __init__
 

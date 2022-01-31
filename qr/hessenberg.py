@@ -5,39 +5,7 @@ Hessenberg
 import numpy as np 
 import pandas as pd 
 from scipy.linalg import hessenberg, norm
-
-def complex_matrix(n: int, a: float, b: float) -> np.ndarray:
-	"""
-	Produces a random `n` :math:`\\times` `n` complex square matrix. All values in the matrices range between `2a` and `2b`.
-
-	Parameters
-	----------
-	n:	
-		Square matrix size.
-	a:
-		Lower limit for random number generator.
-	b: 
-		Upper limit for random number generator.
-  
-	Returns
-	-------
-	`numpy ndarray`:
-		A complex square matrix. 
-  
-	Raises
-	------
-	ValueError
-		If `b` :math:`\\leq` `a`.
-	"""
-    
-	if a >= b:
-		raise ValueError("Required: b > a")
-	
-	r = (b - a) * np.random.default_rng().random(size = (n, n)) + a
-	c = (b - a) * np.random.default_rng().random(size = (n, n)) + a
-	m = r + 1j * c
-	
-	return m.astype(np.complex256)
+from utility import *
   
 def balance(M: np.ndarray):
 	# Implement a balancing algorithm to
@@ -76,7 +44,10 @@ def householder_reflector(x: np.array) -> np.array:
 	"""
 	u = x.copy()
 
-	rho = -np.exp(1j * np.angle(u[0]), dtype = np.complex128)
+	if any(np.iscomplex(u)):
+		rho = -np.exp(1j * np.angle(u[0]), dtype = np.complex256)
+	else:
+		rho = -sign(u[0])
 
 	# Set the Householder vector
 	# to u = u \pm alpha e_1 to 
@@ -158,7 +129,7 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> [np.ndarray, np.
 	# Calculate transfomation matrix
 	# from the stored transformations.
 	if calc_u:
-		u = np.eye(n, dtype = np.complex128)
+		u = np.eye(n, dtype = M.dtype)
 		for k in reversed(range(n - 2)):
 			t = householder_vectors[k]
 			t_norm_squared = np.dot(t.conj().T, t)

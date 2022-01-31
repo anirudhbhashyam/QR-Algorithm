@@ -19,7 +19,6 @@ from qr import QR
 path = "../test_matrices"
 ext = ".mtx.gz"
 
-@unittest.skip("Testing other stuff.")
 class TestHessenberg(unittest.TestCase):
 	def test_reflector(self):
 		# Create random vectors.
