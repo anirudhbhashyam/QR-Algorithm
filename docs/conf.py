@@ -34,11 +34,10 @@ release = '1.0'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
-    'sphinx.ext.napoleon',
-    'sphinx_autodoc_typehints'
+    'sphinx.ext.napoleon'
 ]
 
-autodoc_typehints = "description"
+# autodoc_typehints = "description"
 autodoc_class_signature = "separated"
 autodoc_default_options = {
     "show-inheritance": False
@@ -55,9 +54,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
+# The theme to use for HTML and HTML Help pages. See the   
+# documentation for a list of builtin themes.
 html_theme = 'furo'
 
 # Add any paths that contain custom static files (such as style sheets) here,

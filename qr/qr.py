@@ -23,7 +23,7 @@ class QR:
 	
 	def __init__(self, M: np.ndarray):
 		"""
-		Initalises the QR class. The class stores a square matrix M in hessenberg form. 
+		Initalises the QR class. The class stores a square matrix `M` in hessenberg form. 
 
 		Parameters
 		----------
@@ -45,6 +45,7 @@ class QR:
 
 		# Store matrix in Hessenberg form.
 		self.H = hg.hessenberg_transform(M, False)
+	
 
 	@staticmethod
 	def givens_rotation(i: int, j: int, x: np.array, n: int) -> np.ndarray:
@@ -98,7 +99,7 @@ class QR:
 				c = r * s
 			else:
 				r = -reduced_x[1] / reduced_x[0]
-				c = 1 / np.sqrt(1 + np.power(r, 2))
+				c = 1 / np.sqrt(1 + r ** 2)
 				s = c * r
 	 
 		# Set the rotation elements.
@@ -151,8 +152,52 @@ class QR:
 		g[1, 1] = c
 		g[0, 1] = s
 		g[1, 0] = np.conj(-s)
-		# print(f"{g = }")
 		return g
+
+	@staticmethod
+	def extract_eigs(M: np.ndarray) -> np.ndarray:
+		"""
+		Extracts the eigenvalues from the matrix M which is the (quasi) upper triangular matrix received from any functions that produce the Schur decomposition.
+
+		Parameters
+		----------
+		M :
+			A quasi upper triangular square matrix.
+		
+		Returns
+		-------
+		R
+		"""
+		eigs = list()
+		n = M.shape[0]
+		# count = n
+		i = 0
+
+		# for i in range(n - 1):
+		while i < n:
+			# If the subdiagonal element is close to 
+			# 0, then take the diagonal element.
+			# if count > 0:
+			if i == n - 1:
+				eigs.append(M[i, i])
+				break
+    
+			# print(f"Iteration: {i = }")
+			# print(f"The subdiagonal element is: {M[i + 1, i] = }")
+			if abs(M[i + 1, i]) <= 1e-24:
+				# print(f"Chose the diagonal element {M[i, i]}.")
+				eigs.append(M[i, i])
+				# count -= 1
+				i = i + 1
+			else:
+				# print(f"Chose the eigs22 for submatrix: {M[i : i + 2, i : i + 2] = }.")
+				# print(f"Eigenvalues of the submatrix: {ut.eig22(M[i : i + 2, i : i + 2])}")
+				eigs.extend(ut.eig22(M[i : i + 2, i : i + 2]))
+				# count -= 2
+				i = i + 2
+			# print("\n")
+
+		return np.array(eigs, dtype = np.complex256)
 
 	def qr_hessenberg(self, M: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 		"""
@@ -259,7 +304,7 @@ class QR:
 	@staticmethod
 	def wilkinson_shift(M: np.ndarray) -> Union[complex, float]:
 		"""
-		A function to comput a stable numerical value of the Wilkison shift (:math:`\\sigma`).
+		A function to compute a stable numerical value of the Wilkison shift (:math:`\\sigma`).
   
 		Parameters
 		----------
@@ -336,15 +381,15 @@ class QR:
 	
 		return u, r
 
-	def double_shift(self, shift: complex):
+	def double_shift(self, eps: float, n_iter: int):
 		"""
 		Performs an inefficient double shift for a real valued hessenberg matrix H 
-		with complex eigenvalues. Calculates the real matrix :math:`M = H^2 - 2\\Re(\\sigma)H + |\\sigma|^2 I` and the double shifted :math:`H_2 = Q^{T} H Q`, where :math:`Q` is from the :math:`QR` decomposition of :math:`M`.
+		with complex eigenvalues. Calculates the real matrix :math:`M = H^2 - 2\\Re(\\sigma)H + |\\sigma|^2 I` and the double shifted :math:`H_2 = Q^{T} H Q`, where :math:`Q` is from the :math:`QR` decomposition of :math:`M`. Produces the real schur form :math:`H = U^{*}RU`. 
 		
 		Parameters
 		----------
-		shift:				
-			Approximated complex eigenvalue.
+		n_iter:
+			Number of double iterations to perform.
 
 		Returns
 		-------
@@ -356,25 +401,36 @@ class QR:
 		ValueError:
 			If `self.H` is not real.
 		"""
-		if np.iscomplex(self.H):
+		if np.iscomplex(self.H).any():
 			raise ValueError("Input matrix must be real.")
 
 		H = self.H.copy()
+		n = H.shape[0]
   
-		# Calculate the real matrix M.
-		M = H @ H - 2 * shift.real * H + (abs(shift) ** 2) * np.eye(H.shape[0])
+		for i in reversed(range(2, n)):
+			k = 0
+			while abs(H[i, i - 1]) > eps and k < n_iter:
+				# Get the shift.
+				shift = self.wilkinson_shift(H[i - 2 :, i - 2 :])
 		
-		# QR factorisation of M.
-		# Perform a step of the QR  
-		# hessenberg method.
-		q, r = self.qr_hessenberg(M)
-		
+				# Calculate the real matrix M.
+				M = H @ H - 2 * shift.real * H + (shift.real ** 2 + shift.imag ** 2) * np.eye(n)
+				
+				# QR factorisation of M.
+				# Perform a step of the QR  
+				# hessenberg method.
+				q, r = qr(M)
+    
+				H = q.T @ H @ q
+    
+				k += 1
+			
 		return q.T @ H @ q
 		
 	def francis_double_step(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
 		"""
 		Performs an efficient version of the double shift algorithm to avoid complex
-		airthmetic. Produces the Schur decomposition of :math:`H = URU^{*}`.
+		airthmetic. Produces the Schur decomposition of :math:`H = URU^{*}`. Utilises the *Implicit Q-Theorem* to handle efficient computation of the real matrix :math:`M = H^2 - 2\\Re(\\sigma)H + |\\sigma|^2 I`.
 	 
 	 	Parameters
 		----------
@@ -391,65 +447,61 @@ class QR:
 		:math:`U`
 		:math:`R`
   		"""
+		if np.iscomplex(self.H).any():
+			raise ValueError("Input matrix must be real.")
+
 		H = self.H.copy()
 		n = H.shape[0]
-		active_size = n
-
-		while active_size > 1:
-			reduced_size = active_size - 2
-			H_red = H[reduced_size : active_size, reduced_size : active_size]
-
-			# Efficient real M = H^2 - coeff_1 H + coeff_2  I.
-			coeff_1 = H_red[0, 0] - H_red[1, 1]
-			coeff_2 = np.linalg.det(H_red)
+		p = n - 1
+  
+		while p > 1:
+			print(f"Iteration: {p = }")
+			q = p - 1
+   
+			s = H[p, p] + H[q, q] 
+			t = H[q, q] * H[p, p] - H[q, p] * H[p, q]
    
 			# First 3 elements of first column of M.
-			x = H[0, 0] ** 2 + H[0, 1] * H[1, 0] - coeff_1 * H[0, 0] + coeff_2
-			y = H[1, 0] * (H[0, 0] + H[1, 1] - coeff_1)
+			x = H[0, 0] ** 2 + H[0, 1] * H[1, 0] - s * H[0, 0] + t
+			y = H[1, 0] * (H[0, 0] + H[1, 1] - s)
 			z = H[1, 0] * H[2, 1]
-
-			first_col_M_3 = np.array([x, y, z], dtype = np.float32)
    
-			for k in range(active_size - 4):
-				t = householder_reflector(first_col_M_3)
-	
+			for k in range(p - 2):
+				first_col_M_3 = np.array([x, y, z], dtype = np.float128)
+    
+				t = hg.householder_reflector(first_col_M_3)
+    
 				# Norm ** 2 of the Householder vector.
-				t_norm_squared = t.conj().T @ t
+				t_norm_squared = t.T @ t
 	
-				p = np.eye(t.shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
+				p_ = np.eye(t.shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
 	
-				r = max((0, k))    
-				H[k : k + 2, r : n] = p.T @ H[k : k + 2, r : n]
+				r = k if k > 0 else 0
+				H[k + 1 : k + 4, r :] = p_.T @ H[k + 1 : k + 4, r :]
 
-				r = min((k + 3, active_size))
-				H[0 : r, k + 1 : k + 2] = H[0 : r, k + 1 : k + 2] @ p
+				r = k + 4 if k + 4 < p else p
+				H[: r + 1, k + 1 : k + 4] = H[: r + 1, k + 1 : k + 4] @ p_
 
-				x = H[k + 2, k]
-				y = H[k + 1, k]
-	
-				if k < active_size - 4:
-					z = H[k + 3, k]
+				x = H[k + 2, k + 1]
+				y = H[k + 3, k + 1]
+				z = H[k + 4, k + 1] if k < p - 3 else z 
 
-			t = householder_reflector(np.array([x, y]))
-			# Norm ** 2 of the Householder vector.
-			t_norm_squared = t.conj().T @ t
+			t = self.givens_22(np.array([x, y], dtype = np.float128))
    
-			p = np.eye(t.shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
+			H[q : p + 1, p - 2 :] = t @ H[q: p + 1, p - 2 :]
    
-			H[reduced_size: active_size, active_size, active_size - 3 : n] = p @ H[reduced_size: active_size, active_size, active_size - 3 : n]
-   
-			H[: active_size, active_size - 2 : active_size] = H[: active_size, active_size - 2 : active_size] @ p
+			H[: p + 1, p - 1 : p + 1] = H[: p + 1, p - 1 : p + 1] @ t.T 
    
    
-			if np.abs(H[active_size, reduced_size]) < eps * (H[active_size, active_size] + H[reduced_size, reduced_size]):
-				H[active_size, reduced_size] = 0
-				active_size -= 1
-				reduced_size -= active_size - 2
+			if abs(H[p, q]) < eps * (abs(H[q, q] + abs(H[p, p]))):
+				H[p, q] = 0
+				p = p - 1
+				q = p - 1
 	
-			elif np.abs(H[active_size - 2, reduced_size - 2]) < eps * (H[reduced_size - 2, reduced_size - 2] + H[reduced_size, reduced_size]):
-				H[active_size - 2, reduced_size - 2] = 0 
-				active_size -= 2
-				reduced_size -= active_size - 2
+			elif abs(H[p - 1, q - 1]) < eps * (abs(H[q - 1, q - 1] + abs(H[q, q]))):
+				H[p - 1, q - 1] = 0
+				p = p - 2
+				q = p - 1
 
 		return H
 
@@ -487,28 +539,33 @@ def main():
 	# print(f"Schur form (scipy) r: {pd.DataFrame(t)}")
  
 	# -- TEST Wilkison -- #
-	u, r = qr_alg.qr_wilkinson_shift(1e-6, 100)
+	u, r = qr_alg.qr_wilkinson_shift(1e-64, 500)
+	eigs = qr_alg.extract_eigs(r)
+	eigs1 = eig(qr_alg.H)[0]
 	# t, _ = schur(qr_alg.H)
 	# print(f"Wilkison shift reconstruction (r):\n {pd.DataFrame(u.conj().T @ r @ u)}")
-	# # print(f"Wilkinson shift (r):\n {pd.DataFrame(np.sort(np.diag(r).astype(np.complex128))[::-1])}")
+	# print(f"Wilkinson shift (r):\n {pd.DataFrame(r)}")
+	# print(f"Wilkinson shift reduced (r): {pd.DataFrame(qr_alg.extract_eigs(r)	)}")
 	# print(f"Eigs:\n {pd.DataFrame(np.sort(eig(qr_alg.H)[0])[::-1])}")
 	# print(f"Eigs dtype: {eig(qr_alg.H)[0].dtype}")
 	# print(f"Schur form (scipy) r: {pd.DataFrame(t)}")
 	# with open("output_qr.txt", "w") as f:
 	# 	f.write(f"{pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0]), np.sort(np.diag(r).astype(np.complex128))]).T).to_string()}")
-
+	print(f"Shape comp: {eigs.shape}, {eigs1.shape}")
 	print(f"Trace of H: {np.trace(qr_alg.H)}")
-	print(f"Sum of eigenvalues: {np.trace(r)}")
-	print(f"Trace of H**2: {np.trace(qr_alg.H @ qr_alg.H)}")
-	print(f"Sum of eigenvalues**2: {np.trace(r @ r)}")
-	# for i in range(n):
-	# 	print(f"det(A - \u03BB I): {np.linalg.det(m.astype(np.complex128) - r.astype(np.complex128)[i, i] * np.eye(n))}")
+	np.testing.assert_allclose(np.trace(qr_alg.H), np.sum(eigs), atol = 1e-12, rtol = 1e-16)
+	print(f"Sum of eigenvalues: {np.sum(eigs)}")
+	print(f"Trace of H**2: {np.trace(r @ r)}")
+	print(f"Sum of eigenvalues**2: {np.sum(eigs ** 2)}")
+	# print(f"Shape eigs: {np.diag(r).shape = }, eigs1: {eigs1.shape = }")
 
-	determinant = det(qr_alg.H.astype(np.complex128))
-	# print(f"Determinant: {determinant}")
-	np.testing.assert_allclose(np.prod(np.diag(r.astype(np.complex128))), determinant, atol = 0.00, rtol = 1.00)
+	determinant = det(m.astype(np.complex128))
+	# # print(f"Determinant: {determinant}")
+	np.testing.assert_allclose(np.prod(eigs), determinant, rtol = 1.0, atol = 0.00)
+	# with open("output_qr.txt", "w") as f:
+	# 	f.write(f"{pd.DataFrame(np.vstack(np.sort([eigs, eigs1, np.diag(r)], axis = -1)).T, columns = ['Extracted', 'Real', 'Diag']).to_string()}") 
 	
-	## -- Matrix Market -- ##
+	## -- TEST Wilkinson Shift (Matrix Market) -- ##
 	# matrix_filenames = ["gre__115", "west0381"]
 	# print("Testing the Wilkinson shift using matrices from the matrix market.")
 	# err_msg = "The eigenvalues compute did not pass the test."
@@ -517,13 +574,35 @@ def main():
 	# 	m = mat.toarray() 
 	# 	qr_alg = QR(m)
 	# 	u, r = qr_alg.qr_wilkinson_shift(1e-6, 50)
+	# 	eigs = qr_alg.extract_eigs(r)
+		
 	# 	# Check the sum of the eigenvalues against the trace of H.
 	# 	np.testing.assert_allclose(np.trace(r), np.trace(qr_alg.H), rtol = 1e-6)
 	# 	# Check the sum of the squares of the qigenvalues against the trace of H**2.
 	# 	np.testing.assert_allclose(np.trace(r @ r), np.trace(qr_alg.H @ qr_alg.H), rtol = 1e-6)	
 	# 	# Check the products of the eigenvalues against the determinant of H.
-	# 	determinant = det(m)
-	# 	np.testing.assert_allclose(np.prod(np.diag(r)), determinant, rtol = 1e-2)
+	# 	determinant = det(qr_alg.H)
+	# 	np.testing.assert_allclose(np.prod(eigs), determinant, rtol = 1, atol = 0.0)
 
+	## -- TEST Double Shift -- ##
+	# n = 10
+	# a = 0.0
+	# b = 1e3 * np.random.default_rng().random(1) + 1.0
+	# m = (b - a) * np.random.default_rng().random((n, n)) + a
+	# max_element = np.max(m)
+	# m /= max_element
+	# m = np.array([[7, 3, 4, -11, -9, -2],
+    #            [-6, 4, -5, 7, 1, 12], 
+    #            [-1, -9, 2, 2, 9, 1],
+    #            [-8, 0, -1, 5, 0, 8],
+    #            [-4, 3, -5, 7, 2, 10],
+    #            [6, 1, 4, -11, -7, -1]], dtype = np.float128)
+	# qr_alg = QR(m)
+	# h2 = qr_alg.double_shift(1e-56, 1000)
+	# print(f"Schur quasi triang: {pd.DataFrame(h2)}")
+	# print(f"Extracted eigs: {pd.DataFrame(qr_alg.extract_eigs(h2))}")
+	# print(f"Eigenvalues: {pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0])[::-1], np.sort(qr_alg.extract_eigs(h2))[::-1]]).T, columns = ['Real', 'Approximated'])}")
+	
+	
 if __name__ == "__main__":
 	main()

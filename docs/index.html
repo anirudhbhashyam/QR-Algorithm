@@ -266,6 +266,29 @@ be 0ed.</p>
 </dl>
 </dd></dl>
 <dl class="py function">
+<dt class="sig sig-object py" id="qr.utility.eig22">
+<span class="sig-prename descclassname"><span class="pre">qr.utility.</span></span><span class="sig-name descname"><span class="pre">eig22</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.utility.eig22" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the eigenvalues of the <span class="math notranslate nohighlight">\(2 \times 2\)</span> matrix <cite>M</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>M</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – A <span class="math notranslate nohighlight">\(2 \times 2\)</span> complex matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><cite>eig1</cite></p></li>
+<li><p><cite>eig2</cite></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>AttributeError :</strong> – If <cite>M</cite> is not square and of shape <span class="math notranslate nohighlight">\(2 \times 2\)</span>.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
 <dt class="sig sig-object py" id="qr.utility.sign">
 <span class="sig-prename descclassname"><span class="pre">qr.utility.</span></span><span class="sig-name descname"><span class="pre">sign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.utility.sign" title="Permalink to this definition">¶</a></dt>
 <dd><p>A general sign function for complex valued inputs.</p>
@@ -305,21 +328,18 @@ be 0ed.</p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qr.qr.QR.double_shift">
-<span class="sig-name descname"><span class="pre">double_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.double_shift" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">double_shift</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.double_shift" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs an inefficient double shift for a real valued hessenberg matrix H
 with complex eigenvalues. Calculates the real matrix <span class="math notranslate nohighlight">\(M = H^2 - 2\Re(\sigma)H + |\sigma|^2 I\)</span> and the double shifted <span class="math notranslate nohighlight">\(H_2 = Q^{T} H Q\)</span>, where <span class="math notranslate nohighlight">\(Q\)</span> is from the <span class="math notranslate nohighlight">\(QR\)</span> decomposition of <span class="math notranslate nohighlight">\(M\)</span>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>shift</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>) – Approximated complex eigenvalue.</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><span class="math notranslate nohighlight">\(H_2\)</span></p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><span class="math notranslate nohighlight">\(H_2\)</span></p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><cite>numpy ndarray</cite></p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><cite>numpy ndarray</cite></p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError:</strong> – If <cite>self.H</cite> is not real.</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError:</strong> – If <cite>self.H</cite> is not real.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -489,7 +509,7 @@ perform.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="qr.qr.QR.wilkinson_shift">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wilkinson_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qr.qr.QR.wilkinson_shift" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to comput a stable version of the Wilkison shift (<span class="math notranslate nohighlight">\(\sigma\)</span>).</p>
+<dd><p>A function to comput a stable numerical value of the Wilkison shift (<span class="math notranslate nohighlight">\(\sigma\)</span>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>M</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – A <span class="math notranslate nohighlight">\(2 \times 2\)</span> matrix from which the shift is computed.</p>
