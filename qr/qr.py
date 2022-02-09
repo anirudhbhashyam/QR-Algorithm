@@ -68,15 +68,15 @@ class QR:
 
 		Parameters
 		----------
-		i:	
-  			`i`th row.
-		j:	
-  			`j`th column.
-		x: 	
-  			Vector who's `j`th
+		`i`:	
+  			ith row.
+		`j`:	
+  			jth column.
+		`x`: 	
+  			Vector who's jth
 			entry needs to be 
 			reduced to 0.
-		n: 	
+		`n`: 	
   			Size of the returned
 			Givens Matrix.
 
@@ -112,27 +112,28 @@ class QR:
 	@staticmethod 
 	def givens_22(x: np.array) -> np.ndarray:
 		"""
-		Generates an `2` :math:`\\times` `2` special Givens Rotation matrix based on the on the :math:`2 \\times 1` vector `x`. Function is useful for producing Givens matrices stabily and efficiently. For a Givens rotation matrix :math:`G`, vector :math:`u`
+		Generates an :math:`2 \\times 2` special Givens Rotation matrix based on the on the :math:`2 \\times 1` vector `x`. Function is useful for producing Givens matrices stabily and efficiently. For a Givens rotation matrix :math:`G`, vector :math:`u`.
+		
+		.. math::
   
-		.. math:: 
 			G u = 
-			\\left[
+   
+   			\\left[
 				\\begin{array}{c}
 					u_1 \\\\
-					0
+					0 \\\\
 				\\end{array}
 			\\right]
-
+   		
 		Parameters
 		----------
 		x: 	
-  			:math:`2 \\times 2` vector who's 2nd entry needs to be reduced to 0.
+			:math:`2 \\times 2` vector who's 2nd entry needs to be reduced to 0.
 
 		Returns
 		-------
 		A :math:`2 \\times 2` Givens rotation matrix.
 		"""
-
 		g = np.zeros((2, 2), dtype = x.dtype)
 	
 		if x[1] == 0.0:
