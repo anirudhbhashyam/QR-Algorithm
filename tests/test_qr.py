@@ -6,21 +6,14 @@ import numpy as np
 from scipy.io import mmread
 from scipy.linalg import hessenberg, eig, det
 
+sys.path.append("../src")
 
-# Add qr as an import module 
-# to the PYTHONPATH.
-sys.path.append("../qr")
-
+# src imports.
 from hessenberg import *
 from qr import QR
 import utility as ut
+from variables import *
 
-
-# Path specification for test matrices 
-# from matrix market. scipy.io.mmread
-# is used to read gunzipped matrix files.
-path = "../test_matrices"
-ext = "mtx.gz"
 
 class TestQR(unittest.TestCase):
 	def test_wilkinson_shift_random(self):
@@ -50,7 +43,7 @@ class TestQR(unittest.TestCase):
 		print("Testing the Wilkinson shift using matrices from the matrix market.")
 		err_msg = "The eigenvalues compute did not pass the test."
 		for file in matrix_filenames:
-			mat = mmread(os.path.join(path, ".".join((file, ext))))
+			mat = mmread(os.path.join(MATRIX_MARKET_PATH, ".".join((file, MATRIX_MARKET_FILE_EXT))))
 			m = mat.toarray() 
 			qr_alg = QR(m)
 			u, r = qr_alg.qr_wilkinson_shift(1e-64, 500)

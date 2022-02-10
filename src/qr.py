@@ -12,9 +12,7 @@ from scipy.linalg import eig, qr, schur, det
 
 import hessenberg as hg
 import utility as ut
-
-path = "../test_matrices"
-ext = "mtx.gz"
+from variables import *
 
 class QR:
 	"""
@@ -34,14 +32,14 @@ class QR:
 		------
 			TypeError:
 				If `M` is not of type `numpy ndarray`.
-			AttributeError:
+			ValueError:
 				If `M` is not square.
 		"""
 		if not isinstance(M, np.ndarray):
 			raise TypeError("Input matrix must of type np.ndarray.")
 	 
 		if M.shape[0] != M.shape[1]:
-			raise AttributeError(f"Matrix must be square given shape is {M.shape[0]} x {M.shape[1]}.")
+			raise ValueError(f"Matrix must be square given shape is {M.shape[0]} x {M.shape[1]}.")
 
 		# Store matrix in Hessenberg form.
 		self.H = hg.hessenberg_transform(M, False)
@@ -171,32 +169,23 @@ class QR:
 		"""
 		eigs = list()
 		n = M.shape[0]
-		# count = n
 		i = 0
 
-		# for i in range(n - 1):
 		while i < n:
 			# If the subdiagonal element is close to 
-			# 0, then take the diagonal element.
-			# if count > 0:
+			# 0 or it is the (n - 1, n - 1)th element, 
+			# then take the diagonal element.
 			if i == n - 1:
 				eigs.append(M[i, i])
 				break
-    
-			# print(f"Iteration: {i = }")
-			# print(f"The subdiagonal element is: {M[i + 1, i] = }")
-			if abs(M[i + 1, i]) <= 1e-24:
-				# print(f"Chose the diagonal element {M[i, i]}.")
+			# If a diagonal element is chosen, skip 1.
+			if abs(np.real(M[i + 1, i])) <= 1e-4:
 				eigs.append(M[i, i])
-				# count -= 1
 				i = i + 1
+			# If eigenvalues are extracted skip 2 because 2 diagonal elements are added.
 			else:
-				# print(f"Chose the eigs22 for submatrix: {M[i : i + 2, i : i + 2] = }.")
-				# print(f"Eigenvalues of the submatrix: {ut.eig22(M[i : i + 2, i : i + 2])}")
 				eigs.extend(ut.eig22(M[i : i + 2, i : i + 2]))
-				# count -= 2
 				i = i + 2
-			# print("\n")
 
 		return np.array(eigs, dtype = np.complex256)
 
@@ -315,10 +304,20 @@ class QR:
 		Returns
 		-------
 		:math:`\\sigma`.
+
+		Raises
+		------
+		ValueError:
+			If `M.shape[0] != 2` or `M.shape[1] != 2`. 
 		"""
+		if M.shape[0] != 2 or M.shape[1] != 2:
+			raise ValueError(f"M must be square and of shape (2, 2) but given shape is {M.shape}.")
+
 		sigma = 0.5 * (M[0, 0] - M[1, 1])
-		mu = M[1, 1] - ut.sign(sigma) * (M[1, 0] ** 2)
-		mu /= abs(sigma) + np.sqrt(sigma ** 2 + M[0, 0] ** 2)
+		m_2 = M[0, 1] ** 2 
+		num = (ut.sign(sigma) * m_2)
+		denom = (abs(sigma) + np.sqrt(sigma ** 2 + m_2))
+		mu = M[1, 1] - num / denom 
 		return mu
 
 	def qr_wilkinson_shift(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -352,16 +351,18 @@ class QR:
 		for i in reversed(range(2, n)):
 			k = 0
 			while abs(r[i, i - 1]) > eps and k < n_iter:			 
-    
+				# print(f"Iteration: {i}")
 				# if not r[i - 2:, i - 2:].size:
 				# 	print(f"Matrix section {i = }")
 				# 	with open("qr_output.txt", "a") as f:
 				# 		f.write(f"iteration {i}:\n {pd.DataFrame(r).to_string(header = False, index = False)}\n")
+    
+				# print(f"{r[i - 1 : i + 1, i - 1 : i + 1]}")
+				# print(f"{r[i - 1 : i + 1, i - 1 : i + 1].shape}")
      
 				# Get shift for each iteration.
-				sigma_k = self.wilkinson_shift(r[i - 2 :, i - 2 :])
-				# print(f"{sigma_k = }")
-
+				sigma_k = self.wilkinson_shift(r[i - 1 : i + 1, i - 1 : i + 1])
+				
 				# Generate a scaled identity matrix for use in the shifts.
 				shift_mat = sigma_k * np.eye(n, dtype = r.dtype)
 
@@ -412,14 +413,12 @@ class QR:
 			k = 0
 			while abs(H[i, i - 1]) > eps and k < n_iter:
 				# Get the shift.
-				shift = self.wilkinson_shift(H[i - 2 :, i - 2 :])
+				shift = self.wilkinson_shift(H[i - 1 : i + 1, i - 1 : i + 1])
 		
 				# Calculate the real matrix M.
 				M = H @ H - 2 * shift.real * H + (shift.real ** 2 + shift.imag ** 2) * np.eye(n)
 				
-				# QR factorisation of M.
-				# Perform a step of the QR  
-				# hessenberg method.
+				# QR factorisation of the real matrix M.
 				q, r = qr(M)
     
 				H = q.T @ H @ q
@@ -510,7 +509,7 @@ def main():
 	pd.options.display.max_columns = 200
 	pd.set_option("display.width", 1000)
 	pd.set_option("display.float_format", lambda x: f"{x:.6f}" )
-	n = 100
+	n = 10
 	a = 0.0
 	b = 1e3 * np.random.default_rng().random(1) + 1.0
 	m = ut.complex_matrix(n, a, b)

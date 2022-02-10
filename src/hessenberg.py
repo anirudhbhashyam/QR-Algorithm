@@ -78,23 +78,11 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray
 	`numpy ndarray`:
 		The transformed matrix
 	`numpy ndarray`:
-		The permutation matrix if `calc_q = True`.
+		The permutation matrix if `calc_u = True`.
 	"""
 	h = M.copy()
 	n = h.shape[0]
 	householder_vectors = list()
- 
-	# TILE_SHAPE = 2
-	# BLOCK_SIZE = h.shape[0] // TILE_SHAPE
-	# for i in range(0, n, BLOCK_SIZE):
-	# 	for j in range(0, n, BLOCK_SIZE):
-	# 		# print(f"({i}:{i + BLOCK_SIZE}, {j}:{j + BLOCK_SIZE})")
-	# 		h_blocked = h[i : i + BLOCK_SIZE, j : j + BLOCK_SIZE]
-	# 		# print(f"{h_blocked = }")
-	# 		u_blocked = u[i : i + BLOCK_SIZE, j : j + BLOCK_SIZE]
-   
-	# 		n_ = h_blocked.shape[0]
-	# 		householder_vectors = list()
    
 	for l in range(n - 2):
 		# Get the Householder vector.
@@ -103,24 +91,13 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray
 		# Norm**2 of the Householder vector.
 		t_norm_squared = t.conj().T @ t
   
-		# p = np.eye(h[l + 1:, l].shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
-
-		# # # Resize and refactor the Householder matrix.
-		# p = np.pad(p, ((l + 1, 0), (l + 1, 0)), mode = "constant", constant_values = ((0, 0), (0, 0)))
-		# for k in range(l + 1):
-		# 	p[k, k] = 1
-
-		# # Perform a similarity transformation on h
-		# # using the Householder matrix.
-		# h = p @ h @ p
-  
 		factor = 2.0 / t_norm_squared
   
 		# Left multiplication by I - 2uu^{*}.
 		h[l + 1 :, l :] -= factor * (t @ (t.conj().T @ h[l + 1 :, l :]))
   
 		# Right multiplication by I - 2uu^{*}.
-		h[ :, l + 1 :] -= factor * ((h[ :, l + 1 :] @ t) @ t.conj().T)
+		h[:, l + 1 :] -= factor * ((h[:, l + 1 :] @ t) @ t.conj().T)
   
 		# Force elements below main
 		# subdiagonal to be 0.
@@ -128,25 +105,26 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray
 
 		# Store the transformations 
 		# to compute u.
-		householder_vectors.append(t)
+		householder_vectors.append((factor, t))
   
 	# Calculate transfomation matrix
 	# from the stored transformations.
 	if calc_u:
 		u = np.eye(n, dtype = M.dtype)
-		for k in reversed(range(n - 2)):
-			t = householder_vectors[k]
-			t_norm_squared = np.dot(t.conj().T, t)
-			u[k + 1 :, k + 1 :] = 2 * t * (t.conj().T @ u[k + 1 :, k + 1 :]) / t_norm_squared
+		for i in reversed(range(n - 2)):
+			factor, t = householder_vectors[i]
+			# p = np.eye(n, dtype = M.dtype) - 2 * np.outer(t, t)
+			u[i + 1 :, i + 1 :] -= factor * (t @ (t.conj().T @ u[i + 1 :, i + 1 :]))
+			# u = p @ u
 		return h, u
 
 	return h
 
 if __name__ == "__main__":
-	n = 10
+	n = 5
 	a = 10.0
 	b = 20.0
-	M = ut.complex_matrix(n, a, b)
+	m = ut.complex_matrix(n, a, b)
 	# M = np.array([[14, 15 + 2j, 10, 18, 19, 18, 15, 15], 
 	#            [12, 10, 17, 11, 20, 20, 15, -12], 
 	#            [11, 19, 19, -16, 17, 18, 17, 12], 
@@ -159,12 +137,11 @@ if __name__ == "__main__":
 	# M /= max_el
 	# M = M.astype(np.float128)
 	# print(M.dtype)
-	print(f"Original matrix:\n {pd.DataFrame(M)}")
-	hess_from_alg, _ = hessenberg_transform(M)
-	hess_from_scipy = hessenberg(M) 
-	print(f"Hessenberged:\n {pd.DataFrame(hess_from_alg)}")
-	print(f"Hessenberged (scipy):\n {pd.DataFrame(hess_from_scipy)}")
-	print(f"Test equality: {np.allclose(hess_from_alg, hess_from_scipy, rtol = 1e-6)}")
+	print(f"Original matrix:\n {pd.DataFrame(m)}")
+	h, u = hessenberg_transform(m) 
+	print(f"Hessenberg transformed:\n {pd.DataFrame(h)}")
+	print(f"Transformation matrix:\n {pd.DataFrame(u)}")
+	print(pd.DataFrame(u @ h @ u.conj().T - m))
 	# w, v = np.linalg.eig(hessenberg_transform(M)[0])
 	# print(f"Eigenvalues original: {w}") 
  

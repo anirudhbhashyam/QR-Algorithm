@@ -9,7 +9,7 @@ import numpy as np
 
 def complex_matrix(n: int, a: float, b: float, type_: np.dtype = np.complex256) -> np.ndarray:
 	"""
-	Produces a random `n` :math:`\\times` `n` complex square matrix. All values in the matrices range between `2a` and `2b`.
+	Produces a random `n` :math:`\\times` `n` complex square matrix. The absolute values of all values in the matrix range between `2a` and `2b`.
 
 	Parameters
 	----------
@@ -67,7 +67,7 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
 	
 	Parameters
 	----------
-	M :
+	M:
 		A :math:`2 \\times 2` complex matrix.
   
 	Returns
@@ -77,22 +77,22 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
  
 	Raises
 	------
-	AttributeError :
+	ValueError:
 		If `M` is not square and of shape :math:`2 \\times 2`.
 	"""
 	if M.shape[0] != 2 or M.shape[1] != 2:
-		raise AttributeError(f"Input matrix must be of shape (2, 2) but is of shape {M.shape}.")
+		raise ValueError(f"Input matrix must be of shape (2, 2) but is of shape {M.shape}.")
 
-	mean = 0.5 * (M[0, 0] + M[1, 1])
-	det = M[0, 0] * M[1, 1] - M[1, 0] * M[0, 1] 
+	m = 0.5 * (M[0, 0] + M[1, 1])
+	d = M[0, 0] * M[1, 1] - M[1, 0] * M[0, 1] 
   
 	# Special square root function that returns complex values when the input is negative.
-	sqrt_disc = np.emath.sqrt(det)
+	sqrt_disc = np.emath.sqrt(m ** 2 - d)
  
-	eig_1 = mean + sqrt_disc
-	eig_2 = mean - sqrt_disc
+	eig_1 = m + sqrt_disc
+	eig_2 = m - sqrt_disc
  
-	return eig_1, eig_2
+	return m + sqrt_disc, m - sqrt_disc
  
 	
 
