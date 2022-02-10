@@ -6,6 +6,7 @@ Utility
 from typing import Union, Tuple
 from scipy.linalg import eig
 import numpy as np
+import pandas as pd
 
 def complex_matrix(n: int, a: float, b: float, type_: np.dtype = np.complex256) -> np.ndarray:
 	"""
@@ -97,16 +98,36 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
 	
 
 
-# def allclose(actual: np.array, desired: np.array, tol: float) -> bool:
-# 	bool_array = list()
-# 	for approx in actual:
-# 		indices = [i for i, _ in enumerate(desired) if np.isclose(_, approx, tol)]
-# 		if indices:
-# 			bool_array.append(any(abs(approx - desired[indices]) <= tol))
-# 		else:
-# 			bool_array.append(False)
+def closeness(actual: np.array, desired: np.array, tol: float) -> Tuple[bool, Union[pd.DataFrame, None]]:
+	"""
+	Judges if arrays are close to each other upto a certain `tol` using the equation
+	
+	.. math::
+
+		|a - b| \\leq tol
+	Parameters
+	----------
+	actual:
+		The array with predicitons.
+	desired:
+		The array with desired values.
+  
+	Returns
+	-------
+	A tuple consisting of a boolean indicating if all values are close to each other and a dataframe containing the mismatched elements, if any.
+ 	"""
+	mismatched_positions = list()
+	for predicted, val in zip(actual, desired):
+		if abs(predicted - val) > tol:
+			mismatched_positions.append(False)
+		mismatched_positions.append(True)
 			
-# 	return all(bool_array), np.size(bool_array) - np.count_nonzero(bool_array)
+	mismatched_elements = None
+ 
+	if not all(mismatched_positions):
+		mismatched_elements = pd.DataFrame(np.vstack([desired[mismatched_elements], actual[mismatched_elements]]).T, columns = ["Real Values", "Predicted Values"])
+			
+	return all(mismatched_positions), mismatched_elements
 
 
 def main():
