@@ -2,15 +2,16 @@
 Utility
 =======
 """
+from typing import Union, Tuple, Iterable, Any
 
-from typing import Union, Tuple
-from scipy.linalg import eig
 import numpy as np
 import pandas as pd
+from scipy.linalg import eig
+
 
 def complex_matrix(n: int, a: float, b: float, type_: np.dtype = np.complex256) -> np.ndarray:
 	"""
-	Produces a random `n` :math:`\\times` `n` complex square matrix. The absolute values of all values in the matrix range between `2a` and `2b`.
+	Produces a random `n` :math:`\\times` `n` complex square matrix. The absolute real and complex parts of allof all values in the matrix range between `2a` and `2b`.
 
 	Parameters
 	----------
@@ -20,13 +21,12 @@ def complex_matrix(n: int, a: float, b: float, type_: np.dtype = np.complex256) 
 		Lower limit for random number generator.
 	b: 
 		Upper limit for random number generator.
-	type_:
-		Complex or real numpy `dtype`.
+	type\\_:
+		Complex numpy type.
   
 	Returns
 	-------
-	`numpy ndarray`:
-		A complex square matrix. 
+	A complex square matrix. 
   
 	Raises
 	------
@@ -43,7 +43,7 @@ def complex_matrix(n: int, a: float, b: float, type_: np.dtype = np.complex256) 
 	
 	return m.astype(type_)
 
-def sign(z: complex) -> Union[complex, float]:
+def sign(z: Union[complex, float]) -> Union[float, complex]:
 	"""
 	A general sign function for complex valued inputs.
 	
@@ -54,8 +54,7 @@ def sign(z: complex) -> Union[complex, float]:
   
 	Returns
 	-------
-	complex:
-		1 if `z` = 0 otherwise `z / |z|`.
+	1 if `z` = 0 otherwise `z / |z|`.
 	"""
 	if z == 0:
 		return 1
@@ -73,9 +72,9 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
   
 	Returns
 	-------
-	`eig_1`
-	`eig_2`
- 
+	First eigenvalue.
+	Second eigenvalue.
+
 	Raises
 	------
 	ValueError:
@@ -94,46 +93,60 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
 	eig_2 = m - sqrt_disc
  
 	return m + sqrt_disc, m - sqrt_disc
- 
-	
 
-
-def closeness(actual: np.array, desired: np.array, tol: float) -> Tuple[bool, Union[pd.DataFrame, None]]:
+def closeness(actual: Iterable, desired: Iterable, tol: float) -> Tuple[bool, Union[pd.DataFrame, None]]:
 	"""
-	Judges if arrays are close to each other upto a certain `tol` using the equation
+	Judges if arrays are close to each other upto a certain `tol` using the equation. For arrays :math:`x` and :math:`y`, the function checks
 	
-	.. math::
-
-		|a - b| \\leq tol
+	:math:`|a - b| \\leq tol`
+	for each positional pair :math:`a \\in x` and :math:`b \in y`.
+ 
 	Parameters
 	----------
 	actual:
 		The array with predicitons.
 	desired:
 		The array with desired values.
+	tol:
+		The error tolerance.
   
 	Returns
 	-------
-	A tuple consisting of a boolean indicating if all values are close to each other and a dataframe containing the mismatched elements, if any.
+	Boolean value indicating if all elements of both arrays are close.
+	Mismatched elements, if any.
+ 
+	Raises
+	------
+	ValueError:
+		If `actual` and `desired` array lengths are not equal.
  	"""
+	if len(actual) != len(desired):
+		raise ValueError(f"Length of input arrays do not match, actual is {len(actual)} and desired is {len(desired)}.")
+
+	b = True
 	mismatched_positions = list()
-	for predicted, val in zip(actual, desired):
+	for i, (predicted, val) in enumerate(zip(actual, desired)):
 		if abs(predicted - val) > tol:
-			mismatched_positions.append(False)
-		mismatched_positions.append(True)
+			b = False
+			mismatched_positions.append(i)
 			
 	mismatched_elements = None
+	
+	actual = np.array(actual)
+	desired = np.array(desired)
  
-	if not all(mismatched_positions):
-		mismatched_elements = pd.DataFrame(np.vstack([desired[mismatched_elements], actual[mismatched_elements]]).T, columns = ["Real Values", "Predicted Values"])
+	if not b:
+		mismatched_elements = pd.DataFrame(np.vstack([desired[mismatched_positions], 
+												actual[mismatched_positions], 
+												desired[mismatched_positions] - actual[mismatched_positions]]).T,columns = ["Real Values", "Predicted Values", "Difference"])
 			
-	return all(mismatched_positions), mismatched_elements
+	return b, mismatched_elements
 
 
 def main():
-	m = np.array([[1 + 2j, 1], [-2, 3]], dtype = np.complex64)
-	print(eig22(m))
-	print(eig(m)[0])
+	a = [1.00, 2.00, 3.00]
+	b = [1.01, 2.02, 3.00]
+	print(closeness(a, b, 1e-2)[0])
 	
 	
 if __name__ == "__main__":

@@ -3,11 +3,10 @@
 
 # You can set these variables from the command line, and also
 # from the environment for the first two.
-SPHINXOPTS    ?= -b singlehtml
-SPHINXBUILD   ?= sphinx-build 
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
-BUILDDIR      = .
-HTMLCOPYDIR = .
+BUILDDIR      = _build
 
 # Put it first so that "make" without argument is like "make help".
 help:

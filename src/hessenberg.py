@@ -42,7 +42,7 @@ def householder_reflector(x: np.array) -> np.array:
 		be 0ed. 
   
 	Returns
-	-------
+	------- 
 	`numpy array`:
 		The Householder vector. 
 	"""
@@ -64,21 +64,19 @@ def householder_reflector(x: np.array) -> np.array:
 	
 def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray, np.ndarray]:
 	"""
-	Converts a given complex square matrix to Hessenberg form using Householder transformations.
+	Converts a given complex square matrix to Hessenberg form using Householder transformations. Produces the matrices H and U such that :math:`M = UHU^{*}`, where :math:`H` is in hessenberg form and :math:`U` is a unitary matrix.
 
 	Parameters
 	----------
 	M:	
- 		A complex square `numpy ndarray`.
+ 		A complex square matrix.
 	calc_u:
 		Flag to determine whether to calculate the transfomation matrix.
 
 	Returns
 	-------
-	`numpy ndarray`:
-		The transformed matrix
-	`numpy ndarray`:
-		The permutation matrix if `calc_u = True`.
+	H
+	U
 	"""
 	h = M.copy()
 	n = h.shape[0]
@@ -89,15 +87,15 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray
 		t = householder_reflector(h[l + 1 :, l])
 
 		# Norm**2 of the Householder vector.
-		t_norm_squared = t.conj().T @ t
+		t_norm_squared = np.conj(t).T @ t
   
 		factor = 2.0 / t_norm_squared
   
 		# Left multiplication by I - 2uu^{*}.
-		h[l + 1 :, l :] -= factor * (t @ (t.conj().T @ h[l + 1 :, l :]))
+		h[l + 1 :, l :] -= factor * (t @ (np.conj(t).T @ h[l + 1 :, l :]))
   
 		# Right multiplication by I - 2uu^{*}.
-		h[:, l + 1 :] -= factor * ((h[:, l + 1 :] @ t) @ t.conj().T)
+		h[:, l + 1 :] -= factor * ((h[:, l + 1 :] @ t) @ np.conj(t).T)
   
 		# Force elements below main
 		# subdiagonal to be 0.
@@ -114,7 +112,7 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray
 		for i in reversed(range(n - 2)):
 			factor, t = householder_vectors[i]
 			# p = np.eye(n, dtype = M.dtype) - 2 * np.outer(t, t)
-			u[i + 1 :, i + 1 :] -= factor * (t @ (t.conj().T @ u[i + 1 :, i + 1 :]))
+			u[i + 1 :, i + 1 :] -= factor * (t @ (np.conj(t).T @ u[i + 1 :, i + 1 :]))
 			# u = p @ u
 		return h, u
 

@@ -3,7 +3,7 @@ QR Decomposition
 ================
 """
 import os
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -48,7 +48,7 @@ class QR:
 	@staticmethod
 	def givens_rotation(i: int, j: int, x: np.array, n: int) -> np.ndarray:
 		"""
-		Generates an `n` :math:`\\times` `n` special Givens Rotation matrix based on the parameters `i`, `j`, `x`, and `n`. The rotation matrix acts to reduce the `j`th component of the vector `x` to 0. For a Givens rotation matrix :math:`G`, vector :math:`u` and index :math:`j`
+		Generates an `n` :math:`\\times` `n` special Givens Rotation matrix based on the parameters `i`, `j`, `x`, and `n`. The rotation matrix acts to reduce the `j` th component of the vector `x` to 0. For a Givens rotation matrix :math:`G`, vector :math:`u` and index :math:`j`
   
 		.. math:: 
 			G u = 
@@ -66,21 +66,20 @@ class QR:
 
 		Parameters
 		----------
-		`i`:	
+		i:	
   			ith row.
-		`j`:	
+		j:	
   			jth column.
-		`x`: 	
+		x: 	
   			Vector who's jth
 			entry needs to be 
 			reduced to 0.
-		`n`: 	
+		n: 	
   			Size of the returned
 			Givens Matrix.
-
+  
 		Returns
 		-------
-		`numpy ndarray`:
 			A Givens rotation matrix.
 		"""
 
@@ -115,7 +114,6 @@ class QR:
 		.. math::
   
 			G u = 
-   
    			\\left[
 				\\begin{array}{c}
 					u_1 \\\\
@@ -195,14 +193,14 @@ class QR:
 
 		Parameters
 		----------
-		H:	
+		M:	
   			An `n` :math:`\\times` `n` hessenberg 
 			matrix.
 
 		Returns
 		-------
-		:math:`Q`.
-		:math:`RQ`.
+		:math:`Q`
+  		:math:`RQ`
 		"""
 		givens_matrices = list()
 		r = M.copy()
@@ -294,16 +292,33 @@ class QR:
 	@staticmethod
 	def wilkinson_shift(M: np.ndarray) -> Union[complex, float]:
 		"""
-		A function to compute a stable numerical value of the Wilkison shift (:math:`\\sigma`).
+		A function to compute a stable numerical value of the Wilkison shift (:math:`\\mu`). For a matrix in :math:`\mathbb{C}^{2 \\times 2}`
+
+		.. math::
+			\\left[
+				\\begin{array}{cc}
+					a & b \\\\
+					c & d \\\\
+				\\end{array}
+   			\\right],
+      
+		.. math::
+			\\mu = d - \\frac{b^2\\,\\text{sign}(\\sigma)}{|\\sigma| + \\sqrt{\\sigma^2 + b^2}}
+   
+		where 
   
+		.. math::
+			\\sigma = \\frac{1}{2}\\left(a - d\\right).
+		
+   
 		Parameters
 		----------
-		M :
+		M:
 			A :math:`2 \\times 2` matrix from which the shift is computed.
    
 		Returns
 		-------
-		:math:`\\sigma`.
+		:math:`\\mu`
 
 		Raises
 		------
@@ -383,7 +398,7 @@ class QR:
 	
 		return u, r
 
-	def double_shift(self, eps: float, n_iter: int):
+	def double_shift(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
 		"""
 		Performs an inefficient double shift for a real valued hessenberg matrix H 
 		with complex eigenvalues. Calculates the real matrix :math:`M = H^2 - 2\\Re(\\sigma)H + |\\sigma|^2 I` and the double shifted :math:`H_2 = Q^{T} H Q`, where :math:`Q` is from the :math:`QR` decomposition of :math:`M`. Produces the real schur form :math:`H = U^{*}RU`. 
@@ -395,8 +410,8 @@ class QR:
 
 		Returns
 		-------
-		`numpy ndarray`: 
-			:math:`H_2`
+		:math:`U`
+		:math:`R`
 
 		Raises
 		------
@@ -408,6 +423,7 @@ class QR:
 
 		H = self.H.copy()
 		n = H.shape[0]
+		u = np.eye(n, dtype = H.dtype) 
   
 		for i in reversed(range(2, n)):
 			k = 0
@@ -416,16 +432,18 @@ class QR:
 				shift = self.wilkinson_shift(H[i - 1 : i + 1, i - 1 : i + 1])
 		
 				# Calculate the real matrix M.
-				M = H @ H - 2 * shift.real * H + (shift.real ** 2 + shift.imag ** 2) * np.eye(n)
+				M = H @ H - 2 * shift.real * H + (np.real(shift) ** 2 + np.imag(shift) ** 2) * np.eye(n, dtype = H.dtype)
 				
 				# QR factorisation of the real matrix M.
 				q, r = qr(M)
     
 				H = q.T @ H @ q
     
+				u = u @ q
+    
 				k += 1
 			
-		return q.T @ H @ q
+		return u, H
 		
 	def francis_double_step(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
 		"""
