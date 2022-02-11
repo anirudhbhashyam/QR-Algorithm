@@ -94,7 +94,10 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
  
 	return m + sqrt_disc, m - sqrt_disc
 
-def closeness(actual: Iterable, desired: Iterable, tol: float) -> Tuple[bool, Union[pd.DataFrame, None]]:
+def closeness(actual: Iterable, 
+              desired: Iterable, 
+              tol: float, 
+              get_mismatch: bool = True) -> Tuple[bool, Union[pd.DataFrame, None]]:
 	"""
 	Judges if arrays are close to each other upto a certain `tol` using the equation. For arrays :math:`x` and :math:`y`, the function checks
 	
@@ -109,6 +112,8 @@ def closeness(actual: Iterable, desired: Iterable, tol: float) -> Tuple[bool, Un
 		The array with desired values.
 	tol:
 		The error tolerance.
+	get_mismatch: 
+		Whether to return the mismatched elements, if any.
   
 	Returns
 	-------
@@ -135,7 +140,7 @@ def closeness(actual: Iterable, desired: Iterable, tol: float) -> Tuple[bool, Un
 	actual = np.array(actual)
 	desired = np.array(desired)
  
-	if not b:
+	if not b and get_mismatch:
 		mismatched_elements = pd.DataFrame(np.vstack([desired[mismatched_positions], 
 												actual[mismatched_positions], 
 												desired[mismatched_positions] - actual[mismatched_positions]]).T,columns = ["Real Values", "Predicted Values", "Difference"])
