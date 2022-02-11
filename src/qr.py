@@ -8,7 +8,7 @@ from typing import Union, Tuple, Optional
 import numpy as np
 import pandas as pd
 from scipy.io import mmread
-from scipy.linalg import eig, qr, schur, det
+from scipy.linalg import eig, qr, schur, det, norm
 
 import hessenberg as hg
 import utility as ut
@@ -140,7 +140,7 @@ class QR:
 			s = ut.sign(np.conj(x[1]))
 		else:
 			abs_x0_2 = x[0].real ** 2 + x[0].imag ** 2
-			abs_x1_2 = x[1].real ** 2 + x[1].imag ** 2 
+			abs_x1_2 = x[1].real ** 2 + x[1].imag ** 2
 			denom = np.sqrt(abs_x0_2 + abs_x1_2)
 			c = np.sqrt(abs_x0_2) / denom
 			s = (ut.sign(x[0]) * np.conj(x[1])) / denom
@@ -470,10 +470,11 @@ class QR:
 
 		H = self.H.copy()
 		n = H.shape[0]
+		u = np.eye(n, dtype = H.dtype)
 		p = n - 1
   
 		while p > 1:
-			print(f"Iteration: {p = }")
+			print(f"Iteration {p = }")
 			q = p - 1
    
 			s = H[p, p] + H[q, q] 
@@ -484,56 +485,59 @@ class QR:
 			y = H[1, 0] * (H[0, 0] + H[1, 1] - s)
 			z = H[1, 0] * H[2, 1]
    
-			for k in range(p - 2):
-				first_col_M_3 = np.array([x, y, z], dtype = np.float128)
-    
-				t = hg.householder_reflector(first_col_M_3)
-    
-				# Norm ** 2 of the Householder vector.
+			for k in range(-1, p - 2):
+				print(f"Iteration {k = }")
+				t = hg.householder_reflector(np.array([x, y, z], dtype = H.dtype))
 				t_norm_squared = t.T @ t
-	
-				p_ = np.eye(t.shape[0]) - 2 * (np.outer(t, t)) / t_norm_squared
-	
-				r = k if k > 0 else 0
+				p_ = np.eye(t.shape[0]) - (2 / t_norm_squared) * (np.outer(t, t.T))
+    	
+				r = k if k > 1 else 1
 				H[k + 1 : k + 4, r :] = p_.T @ H[k + 1 : k + 4, r :]
 
 				r = k + 4 if k + 4 < p else p
 				H[: r + 1, k + 1 : k + 4] = H[: r + 1, k + 1 : k + 4] @ p_
+    
+				# Eigenvector computation.
+				u[:, k + 1 : k + 4] = u[:, k + 1 : k + 4] @ p_
 
 				x = H[k + 2, k + 1]
 				y = H[k + 3, k + 1]
-				z = H[k + 4, k + 1] if k < p - 3 else z 
+				z = H[k + 4, k + 1] if k < p - 3 else z
 
-			t = self.givens_22(np.array([x, y], dtype = np.float128))
+			t = self.givens_22(np.array([x, y], dtype = H.dtype))
+
+			H[q : p + 1, p - 2 :] = t @ H[q : p + 1, p - 2 :]
+
+			H[: p + 1, p - 1 : p + 1] = H[: p + 1, p - 1 : p + 1] @ t.T
+
+			# Eigenvector computation.
+			u[:, p - 1 : p + 1] = u[:, p - 1 : p + 1] @ t.T
    
-			H[q : p + 1, p - 2 :] = t @ H[q: p + 1, p - 2 :]
-   
-			H[: p + 1, p - 1 : p + 1] = H[: p + 1, p - 1 : p + 1] @ t.T 
-   
-   
-			if abs(H[p, q]) < eps * (abs(H[q, q] + abs(H[p, p]))):
+			if abs(H[p, q]) < eps * (abs(H[q, q]) + abs(H[p, p])):
 				H[p, q] = 0
-				p = p - 1
+				p -= 1
 				q = p - 1
 	
-			elif abs(H[p - 1, q - 1]) < eps * (abs(H[q - 1, q - 1] + abs(H[q, q]))):
+			elif abs(H[p - 1, q - 1]) < eps * (abs(H[q - 1, q - 1]) + abs(H[q, q])):
 				H[p - 1, q - 1] = 0
-				p = p - 2
+				p -= 2
 				q = p - 1
 
-		return H
+			print(f"p should have changed {p = }")
+
+		return u, H
 
 def main():
 	pd.options.display.max_columns = 200
 	pd.set_option("display.width", 1000)
 	pd.set_option("display.float_format", lambda x: f"{x:.6f}" )
-	n = 10
-	a = 0.0
-	b = 1e3 * np.random.default_rng().random(1) + 1.0
-	m = ut.complex_matrix(n, a, b)
-	max_element = max(np.max(m.real), np.max(m.imag))
-	m /= max_element
-	qr_alg = QR(m)
+	# n = 10
+	# a = 0.0
+	# b = 1e3 * np.random.default_rng().random(1) + 1.0
+	# m = ut.complex_matrix(n, a, b)
+	# max_element = max(np.max(m.real), np.max(m.imag))
+	# m /= max_element
+	# qr_alg = QR(m)
 	# print(f"Original matrix:\n {pd.DataFrame(qr_alg.H)}")
  
 	# -- TEST GIVENS ROTATION -- #
@@ -557,9 +561,9 @@ def main():
 	# print(f"Schur form (scipy) r: {pd.DataFrame(t)}")
  
 	# -- TEST Wilkison -- #
-	u, r = qr_alg.qr_wilkinson_shift(1e-64, 500)
-	eigs = qr_alg.extract_eigs(r)
-	eigs1 = eig(qr_alg.H)[0]
+	# u, r = qr_alg.qr_wilkinson_shift(1e-64, 500)
+	# eigs = qr_alg.extract_eigs(r)
+	# eigs1 = eig(qr_alg.H)[0]
 	# t, _ = schur(qr_alg.H)
 	# print(f"Wilkison shift reconstruction (r):\n {pd.DataFrame(u.conj().T @ r @ u)}")
 	# print(f"Wilkinson shift (r):\n {pd.DataFrame(r)}")
@@ -569,17 +573,17 @@ def main():
 	# print(f"Schur form (scipy) r: {pd.DataFrame(t)}")
 	# with open("output_qr.txt", "w") as f:
 	# 	f.write(f"{pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0]), np.sort(np.diag(r).astype(np.complex128))]).T).to_string()}")
-	print(f"Shape comp: {eigs.shape}, {eigs1.shape}")
-	print(f"Trace of H: {np.trace(qr_alg.H)}")
-	np.testing.assert_allclose(np.trace(qr_alg.H), np.sum(eigs), atol = 1e-12, rtol = 1e-16)
-	print(f"Sum of eigenvalues: {np.sum(eigs)}")
-	print(f"Trace of H**2: {np.trace(r @ r)}")
-	print(f"Sum of eigenvalues**2: {np.sum(eigs ** 2)}")
+	# print(f"Shape comp: {eigs.shape}, {eigs1.shape}")
+	# print(f"Trace of H: {np.trace(qr_alg.H)}")
+	# np.testing.assert_allclose(np.trace(qr_alg.H), np.sum(eigs), atol = 1e-12, rtol = 1e-16)
+	# print(f"Sum of eigenvalues: {np.sum(eigs)}")
+	# print(f"Trace of H**2: {np.trace(r @ r)}")
+	# print(f"Sum of eigenvalues**2: {np.sum(eigs ** 2)}")
 	# print(f"Shape eigs: {np.diag(r).shape = }, eigs1: {eigs1.shape = }")
 
-	determinant = det(m.astype(np.complex128))
+	# determinant = det(m.astype(np.complex128))
 	# # print(f"Determinant: {determinant}")
-	np.testing.assert_allclose(np.prod(eigs), determinant, rtol = 1.0, atol = 0.00)
+	# np.testing.assert_allclose(np.prod(eigs), determinant, rtol = 1.0, atol = 0.00)
 	# with open("output_qr.txt", "w") as f:
 	# 	f.write(f"{pd.DataFrame(np.vstack(np.sort([eigs, eigs1, np.diag(r)], axis = -1)).T, columns = ['Extracted', 'Real', 'Diag']).to_string()}") 
 	
@@ -602,24 +606,24 @@ def main():
 	# 	determinant = det(qr_alg.H)
 	# 	np.testing.assert_allclose(np.prod(eigs), determinant, rtol = 1, atol = 0.0)
 
-	## -- TEST Double Shift -- ##
+	## -- TEST Francis Double Shift -- ##
 	# n = 10
 	# a = 0.0
 	# b = 1e3 * np.random.default_rng().random(1) + 1.0
 	# m = (b - a) * np.random.default_rng().random((n, n)) + a
 	# max_element = np.max(m)
 	# m /= max_element
-	# m = np.array([[7, 3, 4, -11, -9, -2],
-    #            [-6, 4, -5, 7, 1, 12], 
-    #            [-1, -9, 2, 2, 9, 1],
-    #            [-8, 0, -1, 5, 0, 8],
-    #            [-4, 3, -5, 7, 2, 10],
-    #            [6, 1, 4, -11, -7, -1]], dtype = np.float128)
-	# qr_alg = QR(m)
-	# h2 = qr_alg.double_shift(1e-56, 1000)
-	# print(f"Schur quasi triang: {pd.DataFrame(h2)}")
-	# print(f"Extracted eigs: {pd.DataFrame(qr_alg.extract_eigs(h2))}")
-	# print(f"Eigenvalues: {pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0])[::-1], np.sort(qr_alg.extract_eigs(h2))[::-1]]).T, columns = ['Real', 'Approximated'])}")
+	m = np.array([[7, 3, 4, -11, -9, -2],
+	           [-6, 4, -5, 7, 1, 12], 
+	           [-1, -9, 2, 2, 9, 1],
+	           [-8, 0, -1, 5, 0, 8],
+	           [-4, 3, -5, 7, 2, 10],
+	           [6, 1, 4, -11, -7, -1]], dtype = np.float128)
+	qr_alg = QR(m)
+	h2 = qr_alg.francis_double_step(1e-8, 100)
+	print(f"Schur quasi triang: {pd.DataFrame(h2)}")
+	print(f"Extracted eigs: {pd.DataFrame(qr_alg.extract_eigs(h2))}")
+	print(f"Eigenvalues: {pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0])[::-1], np.sort(qr_alg.extract_eigs(h2))[::-1]]).T, columns = ['Real', 'Approximated'])}")
 	
 	
 if __name__ == "__main__":

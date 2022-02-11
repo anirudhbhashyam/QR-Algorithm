@@ -96,7 +96,9 @@ def closeness(actual: Iterable,
               tol: float, 
               get_mismatch: bool = True) -> Tuple[bool, Union[pd.DataFrame, None]]:
 	"""
-	Judges if arrays are close to each other upto a certain `tol` using the equation. For arrays :math:`x` and :math:`y`, the function checks
+	Judges if arrays are close to each other upto a certain `tol` using the equation. If there are mismatched values, then a dataframe containg those values and their differences is returned for analysis. 
+ 
+	For arrays :math:`x` and :math:`y`, the function checks
 	
 	:math:`|a - b| \\leq tol`
 	for each positional pair :math:`a \\in x` and :math:`b \in y`.

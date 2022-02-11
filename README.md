@@ -42,6 +42,7 @@ The `qr` module provides an interface `QR` which accepts a complex/real matrix w
 * `rayleigh_shift`: Performs the Rayleigh shift iteration on a matrix in hessenberg form.
 * `wilkinson_shift`: Performs the Wilkinson shift iteration on a matrix in hessenberg form.
 * `double_shift`: Perform an inefficient double shift on a real matrix in hessenberg form.
+
 Implementation details can be found in the documentation. 
 
 # Testing
