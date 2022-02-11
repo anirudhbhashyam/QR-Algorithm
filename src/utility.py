@@ -89,9 +89,6 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
 	# Special square root function that returns complex values when the input is negative.
 	sqrt_disc = np.emath.sqrt(m ** 2 - d)
  
-	eig_1 = m + sqrt_disc
-	eig_2 = m - sqrt_disc
- 
 	return m + sqrt_disc, m - sqrt_disc
 
 def closeness(actual: Iterable, 
@@ -151,7 +148,7 @@ def closeness(actual: Iterable,
 def main():
 	a = [1.00, 2.00, 3.00]
 	b = [1.01, 2.02, 3.00]
-	print(closeness(a, b, 1e-2)[0])
+	print(np.finfo(float).eps)
 	
 	
 if __name__ == "__main__":

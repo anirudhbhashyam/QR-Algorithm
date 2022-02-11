@@ -71,7 +71,6 @@ class TestHessenberg(unittest.TestCase):
 		err_msg = "The eigenvalues computed from the hessenberg transform and the original matrix are not close enough."
 		for file in matrix_filenames:
 			mat = mmread(os.path.join(MATRIX_MARKET_PATH, ".".join((file, MATRIX_MARKET_FILE_EXT))))
-			print(os.path.join(MATRIX_MARKET_PATH, ".".join((file, MATRIX_MARKET_FILE_EXT))))
 			m = mat.toarray()
 			hess = hg.hessenberg_transform(m, False)
 			# Sort the eigevalues for comparison.

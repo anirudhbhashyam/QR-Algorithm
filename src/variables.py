@@ -1,6 +1,5 @@
 import os
 
-
 # Path specification for test matrices 
 # from matrix market. scipy.io.mmread
 # is used to read gunzipped matrix files.
