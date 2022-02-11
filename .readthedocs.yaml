@@ -24,11 +24,6 @@ sphinx:
 #    - pdf
 
 # Optionally declare the Python requirements required to build your docs
-# python:
-#    install:
-#    - requirements: docs/requirements.txt
-
-sphinx==4.4.0
-sphinx_rtd_theme==0.4.3
-readthedocs-sphinx-search==0.1.1
-sphinx_autodoc_typehints==1.16.0
+python:
+   install:
+   - requirements: requirements.txt
