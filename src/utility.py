@@ -26,7 +26,8 @@ def complex_matrix(n: int, a: float, b: float, type_: np.dtype = np.complex256) 
   
 	Returns
 	-------
-	A complex square matrix. 
+	``numpy ndarray``:
+		A complex square matrix. 
   
 	Raises
 	------
@@ -54,7 +55,8 @@ def sign(z: Union[complex, float]) -> Union[float, complex]:
   
 	Returns
 	-------
-	1 if `z` = 0 otherwise `z / |z|`.
+	``Union[complex, float]``:
+		1 if `z` = 0 otherwise `z / |z|`.
 	"""
 	if z == 0:
 		return 1

@@ -5,7 +5,7 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -210,7 +210,7 @@ be 0ed.</p>
 <dd class="field-even"><p>The Householder vector.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><cite>numpy array</cite></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -250,21 +250,25 @@ with complex eigenvalues. Calculates the real matrix <span class="math notransla
 <dl class="py method">
 <dt class="sig sig-object py" id="src.qr.QR.extract_eigs">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extract_eigs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.qr.QR.extract_eigs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extracts the eigenvalues from the matrix M which is the (quasi) upper triangular matrix received from any functions that produce the Schur decomposition.</p>
+<dd><p>Extracts the eigenvalues from the matrix M which is a (quasi) upper triangular matrix received from any functions that produce the Schur decomposition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>M</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – A quasi upper triangular square matrix.</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>R</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The eigenvalues.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.qr.QR.francis_double_step">
-<span class="sig-name descname"><span class="pre">francis_double_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.qr.QR.francis_double_step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs an efficient version of the double shift algorithm to avoid complex
+<dt class="sig sig-object py" id="src.qr.QR.francis_double_shift">
+<span class="sig-name descname"><span class="pre">francis_double_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.qr.QR.francis_double_shift" title="Permalink to this definition">¶</a></dt>
+<dd><p>DO NOT USE. DOES NOT FUNCTION CORRECTLY.
+Performs an efficient version of the double shift algorithm to avoid complex
 airthmetic. Produces the Schur decomposition of <span class="math notranslate nohighlight">\(H = URU^{*}\)</span>. Utilises the <em>Implicit Q-Theorem</em> to handle efficient computation of the real matrix <span class="math notranslate nohighlight">\(M = H^2 - 2\Re(\sigma)H + |\sigma|^2 I\)</span>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -304,8 +308,11 @@ perform.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>x</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code>) – <span class="math notranslate nohighlight">\(2 \times 2\)</span> vector who’s 2nd entry needs to be reduced to 0.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A <span class="math notranslate nohighlight">\(2 \times 2\)</span> Givens rotation matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">ndarray</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -339,8 +346,11 @@ reduced to 0.</p></li>
 Givens Matrix.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A Givens rotation matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">ndarray</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -441,11 +451,14 @@ perform.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>M</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – A <span class="math notranslate nohighlight">\(2 \times 2\)</span> matrix from which the shift is computed.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><span class="math notranslate nohighlight">\(\mu\)</span></p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError:</strong> – If <cite>M.shape[0] != 2</cite> or <cite>M.shape[1] != 2</cite>.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Union[complex,</span> <span class="pre">float]</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError:</strong> – If <cite>M.shape[0] != (2, 2)</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -500,11 +513,14 @@ for each positional pair <span class="math notranslate nohighlight">\(a \in x\)<
 <li><p><strong>type_</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code>) – Complex numpy type.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A complex square matrix.</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <cite>b</cite> <span class="math notranslate nohighlight">\(\leq\)</span> <cite>a</cite>.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">ndarray</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <cite>b</cite> <span class="math notranslate nohighlight">\(\leq\)</span> <cite>a</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -541,8 +557,11 @@ for each positional pair <span class="math notranslate nohighlight">\(a \in x\)<
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>z</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]) – A complex number.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>1 if <cite>z</cite> = 0 otherwise <cite>z / |z|</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Union[complex,</span> <span class="pre">float]</span></code></p>
 </dd>
 </dl>
 </dd></dl>

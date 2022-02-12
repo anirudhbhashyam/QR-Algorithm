@@ -8,7 +8,7 @@ from typing import Union, Tuple, Optional
 import numpy as np
 import pandas as pd
 from scipy.io import mmread
-from scipy.linalg import eig, qr, schur, det, norm
+from scipy.linalg import qr
 
 import hessenberg as hg
 import utility as ut
@@ -80,6 +80,7 @@ class QR:
   
 		Returns
 		-------
+		``numpy ndarray``:
 			A Givens rotation matrix.
 		"""
 
@@ -128,7 +129,8 @@ class QR:
 
 		Returns
 		-------
-		A :math:`2 \\times 2` Givens rotation matrix.
+		``numpy ndarray``:
+			A :math:`2 \\times 2` Givens rotation matrix.
 		"""
 		g = np.zeros((2, 2), dtype = x.dtype)
 	
@@ -163,7 +165,8 @@ class QR:
 		
 		Returns
 		-------
-		R
+		``numpy array``:
+			The eigenvalues.
 		"""
 		eigs = list()
 		n = M.shape[0]
@@ -318,12 +321,13 @@ class QR:
    
 		Returns
 		-------
-		:math:`\\mu`
+		``Union[complex, float]``
+			:math:`\\mu`
 
 		Raises
 		------
 		ValueError:
-			If `M.shape[0] != 2` or `M.shape[1] != 2`. 
+			If `M.shape[0] != (2, 2)`. 
 		"""
 		if M.shape[0] != 2 or M.shape[1] != 2:
 			raise ValueError(f"M must be square and of shape (2, 2) but given shape is {M.shape}.")

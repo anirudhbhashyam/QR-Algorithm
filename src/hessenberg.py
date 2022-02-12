@@ -43,7 +43,7 @@ def householder_reflector(x: np.array) -> np.array:
   
 	Returns
 	------- 
-	`numpy array`:
+	``numpy array``:
 		The Householder vector. 
 	"""
 	u = x.copy()
