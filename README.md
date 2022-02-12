@@ -53,3 +53,4 @@ or
 * `python -m unittest test_*.py`
 
 # Documentation 
+https://qr-algorithm.readthedocs.io/en/latest/

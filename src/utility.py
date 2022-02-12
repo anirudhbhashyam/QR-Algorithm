@@ -148,9 +148,11 @@ def closeness(actual: Iterable,
 
 
 def main():
-	a = [1.00, 2.00, 3.00]
-	b = [1.01, 2.02, 3.00]
-	print(np.finfo(float).eps)
+	# -- DO NOT UNCOMMENT -- #
+	# a = [1.00, 2.00, 3.00]
+	# b = [1.01, 2.02, 3.00]
+	# print(np.finfo(float).eps)
+	pass
 	
 	
 if __name__ == "__main__":

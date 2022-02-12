@@ -118,11 +118,13 @@ def hessenberg_transform(M: np.ndarray, calc_u: bool = True) -> Tuple[np.ndarray
 
 	return h
 
-if __name__ == "__main__":
-	n = 5
-	a = 10.0
-	b = 20.0
-	m = ut.complex_matrix(n, a, b)
+
+def main():
+    # -- DO NOT UNCOMMENT -- #
+	# n = 5
+	# a = 10.0
+	# b = 20.0
+	# m = ut.complex_matrix(n, a, b)
 	# M = np.array([[14, 15 + 2j, 10, 18, 19, 18, 15, 15], 
 	#            [12, 10, 17, 11, 20, 20, 15, -12], 
 	#            [11, 19, 19, -16, 17, 18, 17, 12], 
@@ -135,11 +137,15 @@ if __name__ == "__main__":
 	# M /= max_el
 	# M = M.astype(np.float128)
 	# print(M.dtype)
-	print(f"Original matrix:\n {pd.DataFrame(m)}")
-	h, u = hessenberg_transform(m) 
-	print(f"Hessenberg transformed:\n {pd.DataFrame(h)}")
-	print(f"Transformation matrix:\n {pd.DataFrame(u)}")
-	print(pd.DataFrame(u @ h @ u.conj().T - m))
+	# print(f"Original matrix:\n {pd.DataFrame(m)}")
+	# h, u = hessenberg_transform(m) 
+	# print(f"Hessenberg transformed:\n {pd.DataFrame(h)}")
+	# print(f"Transformation matrix:\n {pd.DataFrame(u)}")
+	# print(pd.DataFrame(u @ h @ u.conj().T - m))
 	# w, v = np.linalg.eig(hessenberg_transform(M)[0])
 	# print(f"Eigenvalues original: {w}") 
- 
+	pass
+    
+
+if __name__ == "__main__":
+	main()

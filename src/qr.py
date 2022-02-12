@@ -445,8 +445,9 @@ class QR:
 			
 		return u, H
 		
-	def francis_double_step(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
+	def francis_double_shift(self, eps: float, n_iter: int) -> Tuple[np.ndarray, np.ndarray]:
 		"""
+		DO NOT USE. DOES NOT FUNCTION CORRECTLY.
 		Performs an efficient version of the double shift algorithm to avoid complex
 		airthmetic. Produces the Schur decomposition of :math:`H = URU^{*}`. Utilises the *Implicit Q-Theorem* to handle efficient computation of the real matrix :math:`M = H^2 - 2\\Re(\\sigma)H + |\\sigma|^2 I`.
 	 
@@ -528,9 +529,10 @@ class QR:
 		return u, H
 
 def main():
-	pd.options.display.max_columns = 200
-	pd.set_option("display.width", 1000)
-	pd.set_option("display.float_format", lambda x: f"{x:.6f}" )
+	# -- DO NOT UNCOMMENT -- #
+	# pd.options.display.max_columns = 200
+	# pd.set_option("display.width", 1000)
+	# pd.set_option("display.float_format", lambda x: f"{x:.6f}" )
 	# n = 10
 	# a = 0.0
 	# b = 1e3 * np.random.default_rng().random(1) + 1.0
@@ -613,18 +615,18 @@ def main():
 	# m = (b - a) * np.random.default_rng().random((n, n)) + a
 	# max_element = np.max(m)
 	# m /= max_element
-	m = np.array([[7, 3, 4, -11, -9, -2],
-	           [-6, 4, -5, 7, 1, 12], 
-	           [-1, -9, 2, 2, 9, 1],
-	           [-8, 0, -1, 5, 0, 8],
-	           [-4, 3, -5, 7, 2, 10],
-	           [6, 1, 4, -11, -7, -1]], dtype = np.float128)
-	qr_alg = QR(m)
-	h2 = qr_alg.francis_double_step(1e-8, 100)
-	print(f"Schur quasi triang: {pd.DataFrame(h2)}")
-	print(f"Extracted eigs: {pd.DataFrame(qr_alg.extract_eigs(h2))}")
-	print(f"Eigenvalues: {pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0])[::-1], np.sort(qr_alg.extract_eigs(h2))[::-1]]).T, columns = ['Real', 'Approximated'])}")
-	
+	# m = np.array([[7, 3, 4, -11, -9, -2],
+	#            [-6, 4, -5, 7, 1, 12], 
+	#            [-1, -9, 2, 2, 9, 1],
+	#            [-8, 0, -1, 5, 0, 8],
+	#            [-4, 3, -5, 7, 2, 10],
+	#            [6, 1, 4, -11, -7, -1]], dtype = np.float128)
+	# qr_alg = QR(m)
+	# h2 = qr_alg.francis_double_step(1e-8, 100)
+	# print(f"Schur quasi triang: {pd.DataFrame(h2)}")
+	# print(f"Extracted eigs: {pd.DataFrame(qr_alg.extract_eigs(h2))}")
+	# print(f"Eigenvalues: {pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0])[::-1], np.sort(qr_alg.extract_eigs(h2))[::-1]]).T, columns = ['Real', 'Approximated'])}")
+	pass	
 	
 if __name__ == "__main__":
 	main()
