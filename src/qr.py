@@ -39,7 +39,7 @@ class QR:
 			raise TypeError("Input matrix must of type np.ndarray.")
 	 
 		if M.shape[0] != M.shape[1]:
-			raise ValueError(f"Matrix must be square given shape is {M.shape[0]} x {M.shape[1]}.")
+			raise ValueError(f"Matrix must be square but given shape is {M.shape}.")
 
 		# Store matrix in Hessenberg form.
 		self.H = hg.hessenberg_transform(M, False)
@@ -154,7 +154,7 @@ class QR:
 	@staticmethod
 	def extract_eigs(M: np.ndarray) -> np.ndarray:
 		"""
-		Extracts the eigenvalues from the matrix M which is the (quasi) upper triangular matrix received from any functions that produce the Schur decomposition.
+		Extracts the eigenvalues from the matrix M which is a (quasi) upper triangular matrix received from any functions that produce the Schur decomposition.
 
 		Parameters
 		----------
