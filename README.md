@@ -39,8 +39,8 @@ Implementation details can be found in the documentation.
 ## QR
 The `qr` module provides an interface `QR` which accepts a complex/real matrix when it is initialised and stores a the matrix in hessenberg form. The main functions in this class are 
 * `qr_hessenberg`: Generates the $QR$ decomposition of a hessenberg matrix. 
-* `rayleigh_shift`: Performs the Rayleigh shift iteration on a matrix in hessenberg form.
-* `wilkinson_shift`: Performs the Wilkinson shift iteration on a matrix in hessenberg form.
+* `qr_rayleigh_shift`: Performs the Rayleigh shift iteration on a matrix in hessenberg form.
+* `qr_wilkinson_shift`: Performs the Wilkinson shift iteration on a matrix in hessenberg form.
 * `double_shift`: Perform an inefficient double shift on a real matrix in hessenberg form.
 
 Implementation details can be found in the documentation. 
