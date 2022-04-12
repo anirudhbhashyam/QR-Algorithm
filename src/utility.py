@@ -91,7 +91,7 @@ def eig22(M: np.ndarray) -> Tuple[Union[complex, float], Union[complex, float]]:
 	# Special square root function that returns complex values when the input is negative.
 	sqrt_disc = np.emath.sqrt(m ** 2 - d)
  
-	return m + sqrt_disc, m - sqrt_disc
+	return m - sqrt_disc, m + sqrt_disc
 
 def closeness(actual: Iterable, 
               desired: Iterable, 
@@ -148,14 +148,23 @@ def closeness(actual: Iterable,
 			
 	return b, mismatched_elements
 
-
-def main():
-	# -- DO NOT UNCOMMENT -- #
-	# a = [1.00, 2.00, 3.00]
-	# b = [1.01, 2.02, 3.00]
-	# print(np.finfo(float).eps)
-	pass
-	
-	
-if __name__ == "__main__":
-	main()
+def hessenberg_q(m: np.ndarray) -> bool:
+    """
+    Check if a matrix m is hessenberg.
+    
+    Parameters
+    ----------
+    m: 
+		A square complex matrix.
+  
+	Returns
+	-------
+	Whether the matrix is hessenberg or not.
+    """
+    if m.shape[0] != m.shape[1]:
+        raise ValueError(f"Matrix should be square but is of shape {m.shape}.")
+    
+    n = m.shape[0]
+    sub_lower_triangular = np.tril(m, -1)
+    
+    return np.allclose(sub_lower_triangular, np.zeros((n, n)), atol = 1e-8, rtol = 0)

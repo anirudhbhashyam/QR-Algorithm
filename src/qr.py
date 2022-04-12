@@ -180,13 +180,13 @@ class QR:
 				eigs.append(M[i, i])
 				break
 			# If a diagonal element is chosen, skip 1.
-			if abs(np.real(M[i + 1, i])) <= 1e-4:
+			if abs(np.real(M[i + 1, i])) <= 1e-6:
 				eigs.append(M[i, i])
-				i = i + 1
+				i += 1
 			# If eigenvalues are extracted skip 2 because 2 diagonal elements are added.
 			else:
 				eigs.extend(ut.eig22(M[i : i + 2, i : i + 2]))
-				i = i + 2
+				i += 2
 
 		return np.array(eigs, dtype = np.complex256)
 
@@ -213,11 +213,10 @@ class QR:
 		# Get QR decomposition using (g_n g_{n-1} ... g_1 H).
 		for i in range(n - 1):
 			# Retrieve the Givens Matrix.
-			# g = self.givens_rotation(i, i + 1, r[:, i], n)
 			g_ = self.givens_22(r[:, i][i : i + 2])
    
 			# Since i and j for the Givens Matrix are consecutive
-			# we get a 2x2 rotation matrix.
+			# we get a 2 x 2 rotation matrix.
    
 			# Store Q.
 			q[ :, i : i + 2] = q[ :, i : i + 2] @ g_
@@ -531,106 +530,3 @@ class QR:
 			print(f"p should have changed {p = }")
 
 		return u, H
-
-def main():
-	# -- DO NOT UNCOMMENT -- #
-	# pd.options.display.max_columns = 200
-	# pd.set_option("display.width", 1000)
-	# pd.set_option("display.float_format", lambda x: f"{x:.6f}" )
-	# n = 10
-	# a = 0.0
-	# b = 1e3 * np.random.default_rng().random(1) + 1.0
-	# m = ut.complex_matrix(n, a, b)
-	# max_element = max(np.max(m.real), np.max(m.imag))
-	# m /= max_element
-	# qr_alg = QR(m)
-	# print(f"Original matrix:\n {pd.DataFrame(qr_alg.H)}")
- 
-	# -- TEST GIVENS ROTATION -- #
-	# x = np.array([1.0 + 0.0j, 2.0 + 0.8j])
-	# g_ = qr_alg.givens_22(x)
-	# print(f"{g_ @ x}")
-	# 
-	
-	# q, r = qr_alg.qr_hessenberg(qr_alg.H)
-	# q_, r_ = qr(qr_alg.H)
-	# print(f"q:\n {pd.DataFrame(q)}")
-	# print(f"r:\n {pd.DataFrame(r)}")
-	# print(f"q_:\n {pd.DataFrame(q_)}")
-	# print(f"r_:\n {pd.DataFrame(r_)}")
- 
-	# -- TEST Rayleigh -- #
-	# u, r = qr_alg.qr_rayleigh_shift(1e-12, 100)
-	# t, _ = schur(qr_alg.H)
-	# print(f"Rayleigh shift (r):\n {pd.DataFrame(r)}")
-	# print(f"Eigs:\n {pd.DataFrame(np.sort(eig(qr_alg.H)[0])[::-1])}")
-	# print(f"Schur form (scipy) r: {pd.DataFrame(t)}")
- 
-	# -- TEST Wilkison -- #
-	# u, r = qr_alg.qr_wilkinson_shift(1e-64, 500)
-	# eigs = qr_alg.extract_eigs(r)
-	# eigs1 = eig(qr_alg.H)[0]
-	# t, _ = schur(qr_alg.H)
-	# print(f"Wilkison shift reconstruction (r):\n {pd.DataFrame(u.conj().T @ r @ u)}")
-	# print(f"Wilkinson shift (r):\n {pd.DataFrame(r)}")
-	# print(f"Wilkinson shift reduced (r): {pd.DataFrame(qr_alg.extract_eigs(r)	)}")
-	# print(f"Eigs:\n {pd.DataFrame(np.sort(eig(qr_alg.H)[0])[::-1])}")
-	# print(f"Eigs dtype: {eig(qr_alg.H)[0].dtype}")
-	# print(f"Schur form (scipy) r: {pd.DataFrame(t)}")
-	# with open("output_qr.txt", "w") as f:
-	# 	f.write(f"{pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0]), np.sort(np.diag(r).astype(np.complex128))]).T).to_string()}")
-	# print(f"Shape comp: {eigs.shape}, {eigs1.shape}")
-	# print(f"Trace of H: {np.trace(qr_alg.H)}")
-	# np.testing.assert_allclose(np.trace(qr_alg.H), np.sum(eigs), atol = 1e-12, rtol = 1e-16)
-	# print(f"Sum of eigenvalues: {np.sum(eigs)}")
-	# print(f"Trace of H**2: {np.trace(r @ r)}")
-	# print(f"Sum of eigenvalues**2: {np.sum(eigs ** 2)}")
-	# print(f"Shape eigs: {np.diag(r).shape = }, eigs1: {eigs1.shape = }")
-
-	# determinant = det(m.astype(np.complex128))
-	# # print(f"Determinant: {determinant}")
-	# np.testing.assert_allclose(np.prod(eigs), determinant, rtol = 1.0, atol = 0.00)
-	# with open("output_qr.txt", "w") as f:
-	# 	f.write(f"{pd.DataFrame(np.vstack(np.sort([eigs, eigs1, np.diag(r)], axis = -1)).T, columns = ['Extracted', 'Real', 'Diag']).to_string()}") 
-	
-	## -- TEST Wilkinson Shift (Matrix Market) -- ##
-	# matrix_filenames = ["gre__115", "west0381"]
-	# print("Testing the Wilkinson shift using matrices from the matrix market.")
-	# err_msg = "The eigenvalues compute did not pass the test."
-	# for file in matrix_filenames:
-	# 	mat = mmread(os.path.join(path, ".".join((file, ext))))
-	# 	m = mat.toarray() 
-	# 	qr_alg = QR(m)
-	# 	u, r = qr_alg.qr_wilkinson_shift(1e-6, 50)
-	# 	eigs = qr_alg.extract_eigs(r)
-		
-	# 	# Check the sum of the eigenvalues against the trace of H.
-	# 	np.testing.assert_allclose(np.trace(r), np.trace(qr_alg.H), rtol = 1e-6)
-	# 	# Check the sum of the squares of the qigenvalues against the trace of H**2.
-	# 	np.testing.assert_allclose(np.trace(r @ r), np.trace(qr_alg.H @ qr_alg.H), rtol = 1e-6)	
-	# 	# Check the products of the eigenvalues against the determinant of H.
-	# 	determinant = det(qr_alg.H)
-	# 	np.testing.assert_allclose(np.prod(eigs), determinant, rtol = 1, atol = 0.0)
-
-	## -- TEST Francis Double Shift -- ##
-	# n = 10
-	# a = 0.0
-	# b = 1e3 * np.random.default_rng().random(1) + 1.0
-	# m = (b - a) * np.random.default_rng().random((n, n)) + a
-	# max_element = np.max(m)
-	# m /= max_element
-	# m = np.array([[7, 3, 4, -11, -9, -2],
-	#            [-6, 4, -5, 7, 1, 12], 
-	#            [-1, -9, 2, 2, 9, 1],
-	#            [-8, 0, -1, 5, 0, 8],
-	#            [-4, 3, -5, 7, 2, 10],
-	#            [6, 1, 4, -11, -7, -1]], dtype = np.float128)
-	# qr_alg = QR(m)
-	# h2 = qr_alg.francis_double_step(1e-8, 100)
-	# print(f"Schur quasi triang: {pd.DataFrame(h2)}")
-	# print(f"Extracted eigs: {pd.DataFrame(qr_alg.extract_eigs(h2))}")
-	# print(f"Eigenvalues: {pd.DataFrame(np.vstack([np.sort(eig(qr_alg.H)[0])[::-1], np.sort(qr_alg.extract_eigs(h2))[::-1]]).T, columns = ['Real', 'Approximated'])}")
-	pass	
-	
-if __name__ == "__main__":
-	main()

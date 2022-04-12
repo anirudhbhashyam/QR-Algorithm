@@ -21,17 +21,17 @@ class TestQR(unittest.TestCase):
 		b = 10
   
 		for n in matrix_sizes:
-			m = ut.complex_matrix(n, a, b, np.complex256)
+			m = ut.complex_matrix(n, a, b, np.complex128)
 			qr_alg = QR(m)
-			u, r = qr_alg.qr_wilkinson_shift(1e-64, 200)
+			u, r = qr_alg.qr_wilkinson_shift(1e-128, 500)
 			eigs = qr_alg.extract_eigs(r)
    
 			# Check the sum of the eigenvalues against the trace of H.
-			np.testing.assert_almost_equal(np.sum(eigs), np.trace(m), decimal = 1)
+			np.testing.assert_almost_equal(np.sum(eigs), np.trace(m), decimal = 2)
 			# Check the sum of the squares of the qigenvalues against the trace of H**2.
-			np.testing.assert_almost_equal(np.sum(eigs ** 2), np.trace(np.linalg.matrix_power(m, 2)), decimal = 1)
+			np.testing.assert_almost_equal(np.sum(eigs ** 2), np.trace(np.linalg.matrix_power(m, 2)), decimal = 2)
 			# Check the products of the eigenvalues against the determinant of H.
-			determinant = np.linalg.det(m.astype(np.complex128))
+			determinant = np.linalg.det(m)
 			# print(np.prod(eigs))
 			# print(determinant)
 			# print(np.prod(eigs) - determinant)
@@ -44,16 +44,15 @@ class TestQR(unittest.TestCase):
 			mat = mmread(os.path.join(MATRIX_MARKET_PATH, ".".join((file, MATRIX_MARKET_FILE_EXT))))
 			m = mat.toarray() 
 			qr_alg = QR(m)
-			qr_alg = QR(m)
-			u, r = qr_alg.qr_wilkinson_shift(1e-128, 100)
+			u, r = qr_alg.qr_wilkinson_shift(1e-128, 400)
 			eigs = qr_alg.extract_eigs(r)
    
 			# Check the sum of the eigenvalues against the trace of H.
-			np.testing.assert_almost_equal(np.sum(eigs), np.trace(m), decimal = 1)
+			np.testing.assert_almost_equal(np.sum(eigs), np.trace(m), decimal = 2)
 			# Check the sum of the squares of the qigenvalues against the trace of H**2.
-			np.testing.assert_almost_equal(np.sum(eigs ** 2), np.trace(np.linalg.matrix_power(m, 2)), decimal = 1)
+			np.testing.assert_almost_equal(np.sum(eigs ** 2), np.trace(np.linalg.matrix_power(m, 2)), decimal = 2)
 			# Check the products of the eigenvalues against the determinant of H.
-			determinant = np.linalg.det(m.astype(np.complex128))
+			determinant = np.linalg.det(m)
 			
 			np.testing.assert_almost_equal(np.prod(eigs), determinant, decimal = 0)
 
